@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="HermesSessionMetrics.Tests/HermesSessionMetrics.Tests.csproj" />
+  <Project Path="HermesSessionMetrics.Web/HermesSessionMetrics.Web.csproj" />
+</Solution>

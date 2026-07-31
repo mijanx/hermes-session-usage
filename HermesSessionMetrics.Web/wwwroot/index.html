@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hermes Session Metrics</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">HERMES TELEMETRY</div>
+      <h1>Session Metrics</h1>
+      <p>Live, read-only model and task accounting across profiles.</p>
+    </div>
+    <div class="status-panel">
+      <span id="statusDot" class="status-dot"></span>
+      <span id="statusText">Connecting…</span>
+      <button id="refreshButton" class="button">Refresh</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="controls panel" aria-label="Dashboard controls">
+      <div class="control-group profile-group">
+        <label>Profiles</label>
+        <div id="profileChips" class="chips"></div>
+      </div>
+      <div class="control-group">
+        <label>Window</label>
+        <div id="windowPicker" class="segmented">
+          <button data-window="24h" class="active">24 hours</button>
+          <button data-window="7d">7 days</button>
+          <button data-window="30d">30 days</button>
+        </div>
+      </div>
+      <div class="control-group search-group">
+        <label for="searchInput">Search sessions, models, tasks</label>
+        <input id="searchInput" type="search" placeholder="Title, session ID, model, provider…" autocomplete="off">
+      </div>
+      <div class="control-group">
+        <label>Cost basis</label>
+        <div id="costBasisPicker" class="segmented">
+          <button data-cost-basis="recorded" class="active">Recorded</button>
+          <button data-cost-basis="api-equivalent">API equivalent</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <label for="sortSelect">Order sessions by</label>
+        <select id="sortSelect">
+          <option value="tokens">Token usage</option>
+          <option value="started">Start time</option>
+          <option value="cost">Cost</option>
+          <option value="calls">API calls</option>
+        </select>
+      </div>
+    </section>
+
+    <section id="summaryCards" class="summary-grid" aria-label="Summary metrics"></section>
+
+    <section class="panel table-panel">
+      <div class="table-header">
+        <div>
+          <h2>Sessions × model/task usage</h2>
+          <p id="resultMeta">Loading…</p>
+        </div>
+        <div class="legend">
+          <span><i class="legend-agent"></i>Agent</span>
+          <span><i class="legend-aux"></i>Auxiliary task</span>
+          <span><i class="legend-cost"></i>Positive displayed cost</span>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="session-col">Session</th>
+              <th>Started</th>
+              <th>Status</th>
+              <th class="number">Session tokens</th>
+              <th>Task</th>
+              <th>Model / provider</th>
+              <th class="number">Calls</th>
+              <th class="number">Input</th>
+              <th class="number">Cache</th>
+              <th class="number">Output</th>
+              <th class="number">Reasoning</th>
+              <th class="number">Accounted</th>
+              <th id="costHeader" class="number">Recorded cost</th>
+            </tr>
+          </thead>
+          <tbody id="sessionRows"></tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <button id="previousPage" class="button">Previous</button>
+        <span id="pageStatus">Page 1</span>
+        <button id="nextPage" class="button">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="errorBanner" class="error-banner" role="alert" hidden></div>
+  <script src="app.js"></script>
+</body>
+</html>
