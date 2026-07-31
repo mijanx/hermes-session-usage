@@ -234,6 +234,7 @@ public sealed class ApiPricingCatalogTests
                   },
                   "sources": [
                     {
+                      "id": "openai-pricing",
                       "name": "OpenAI API pricing",
                       "url": "https://developers.openai.com/api/docs/pricing.md",
                       "retrievedAt": "2026-07-31T09:18:47Z",
@@ -241,6 +242,7 @@ public sealed class ApiPricingCatalogTests
                       "basis": "standard short-context rates"
                     },
                     {
+                      "id": "models-dev",
                       "name": "models.dev fallback",
                       "url": "https://models.dev/api.json",
                       "retrievedAt": "2026-07-31T09:18:47Z"
@@ -253,7 +255,9 @@ public sealed class ApiPricingCatalogTests
                       "inputPerMillion": 1,
                       "cacheReadPerMillion": 0.1,
                       "cacheWritePerMillion": 1.25,
-                      "outputPerMillion": 6
+                      "outputPerMillion": 6,
+                      "sourceIds": ["openai-pricing"],
+                      "basis": "standard short-context rates"
                     }
                   ]
                 }
@@ -268,6 +272,10 @@ public sealed class ApiPricingCatalogTests
                     Assert.Equal("standard short-context rates", source.Basis);
                 },
                 source => Assert.Null(source.Provider));
+            var entry = Assert.Single(catalog.Entries);
+            Assert.NotNull(entry.SourceIds);
+            Assert.Equal("openai-pricing", Assert.Single(entry.SourceIds));
+            Assert.Equal("standard short-context rates", entry.Basis);
         }
         finally
         {

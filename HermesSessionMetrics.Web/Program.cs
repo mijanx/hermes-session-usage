@@ -53,6 +53,7 @@ app.MapGet("/api/pricing", (ApiPricingCatalog pricing) => Results.Ok(new
 {
     pricing.Source,
     pricing.Sources,
+    models = pricing.Entries,
     modelCount = pricing.Count
 }));
 

@@ -32,6 +32,33 @@ def fetch(url: str) -> dict:
         return json.load(response)
 
 
+def _validate_official(official: dict) -> None:
+    sources = official.get("sources", [])
+    source_ids = [source.get("id") for source in sources]
+    if any(not source_id for source_id in source_ids) or len(source_ids) != len(set(source_ids)):
+        raise ValueError("Official pricing sources must have unique non-empty IDs")
+
+    known_sources = set(source_ids)
+    model_ids: set[str] = set()
+    required_rates = (
+        "inputPerMillion",
+        "cacheReadPerMillion",
+        "cacheWritePerMillion",
+        "outputPerMillion",
+    )
+    for entry in official.get("models", []):
+        model_id = entry.get("model", "").casefold()
+        if not model_id or model_id in model_ids:
+            raise ValueError("Official pricing model IDs must be unique case-insensitively")
+        model_ids.add(model_id)
+        if not entry.get("provider") or not entry.get("basis"):
+            raise ValueError(f"Official pricing entry {model_id} lacks provider or basis")
+        if not entry.get("sourceIds") or not set(entry["sourceIds"]).issubset(known_sources):
+            raise ValueError(f"Official pricing entry {model_id} has invalid source IDs")
+        if any(not isinstance(entry.get(rate), (int, float)) or entry[rate] < 0 for rate in required_rates):
+            raise ValueError(f"Official pricing entry {model_id} has invalid rates")
+
+
 def create_snapshot(
     catalog: dict,
     source_url: str,
@@ -54,10 +81,14 @@ def create_snapshot(
                 "cacheReadPerMillion": cost.get("cache_read", input_rate),
                 "cacheWritePerMillion": cost.get("cache_write", input_rate),
                 "outputPerMillion": output_rate,
+                "sourceIds": ["models-dev"],
+                "basis": "Direct API rates from the models.dev fallback catalog",
             })
 
     timestamp = retrieved_at or dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     official = official or {"sources": [], "models": []}
+    if official.get("sources") or official.get("models"):
+        _validate_official(official)
     for entry in official.get("models", []):
         selected[entry["model"].casefold()] = entry
 
@@ -66,6 +97,7 @@ def create_snapshot(
         for source in official.get("sources", [])
     ]
     sources.append({
+        "id": "models-dev",
         "name": "models.dev fallback",
         "url": source_url,
         "retrievedAt": timestamp,
@@ -75,9 +107,11 @@ def create_snapshot(
     return {
         "schemaVersion": 1,
         "source": {
+            "id": "merged-snapshot",
             "name": "Official provider pricing with models.dev fallback",
-            "url": source_url,
+            "url": "data/api-pricing.json",
             "retrievedAt": timestamp,
+            "basis": "Compatibility summary; inspect sources and each model's sourceIds for provenance",
         },
         "sources": sources,
         "models": sorted(selected.values(), key=lambda item: item["model"].casefold()),

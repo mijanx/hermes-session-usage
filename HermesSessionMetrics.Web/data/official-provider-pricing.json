@@ -6,55 +6,64 @@
       "name": "OpenAI API pricing",
       "url": "https://developers.openai.com/api/docs/pricing.md",
       "provider": "openai",
-      "basis": "standard short-context text-token rates"
+      "basis": "standard short-context text-token rates",
+      "id": "openai-pricing"
     },
     {
       "name": "OpenAI GPT-5.6 model guide",
       "url": "https://developers.openai.com/api/docs/guides/latest-model",
       "provider": "openai",
-      "basis": "gpt-5.6 alias routes to gpt-5.6-sol"
+      "basis": "gpt-5.6 alias routes to gpt-5.6-sol",
+      "id": "openai-gpt-5.6-guide"
     },
     {
       "name": "xAI API pricing",
       "url": "https://docs.x.ai/developers/pricing.md",
       "provider": "xai",
-      "basis": "standard short-context text-token rates (<200k prompt tokens)"
+      "basis": "standard short-context text-token rates (<200k prompt tokens)",
+      "id": "xai-pricing"
     },
     {
       "name": "Kimi K2.5 pricing",
       "url": "https://platform.kimi.ai/docs/pricing/chat-k25.md",
       "provider": "moonshotai",
-      "basis": "cache-hit, cache-miss, and output rates"
+      "basis": "cache-hit, cache-miss, and output rates",
+      "id": "kimi-k2.5-pricing"
     },
     {
       "name": "Kimi K2.6 pricing",
       "url": "https://platform.kimi.ai/docs/pricing/chat-k26.md",
       "provider": "moonshotai",
-      "basis": "cache-hit, cache-miss, and output rates"
+      "basis": "cache-hit, cache-miss, and output rates",
+      "id": "kimi-k2.6-pricing"
     },
     {
       "name": "Kimi K2.7 Code pricing",
       "url": "https://platform.kimi.ai/docs/pricing/chat-k27-code.md",
       "provider": "moonshotai",
-      "basis": "cache-hit, cache-miss, and output rates"
+      "basis": "cache-hit, cache-miss, and output rates",
+      "id": "kimi-k2.7-code-pricing"
     },
     {
       "name": "Kimi K3 pricing",
       "url": "https://platform.kimi.ai/docs/pricing/chat-k3.md",
       "provider": "moonshotai",
-      "basis": "cache-hit, cache-miss, and output rates"
+      "basis": "cache-hit, cache-miss, and output rates",
+      "id": "kimi-k3-pricing"
     },
     {
       "name": "MiniMax pay-as-you-go pricing",
       "url": "https://platform.minimax.io/docs/guides/pricing-paygo.md",
       "provider": "minimax",
-      "basis": "standard rates; MiniMax-M3 <=512k input tokens"
+      "basis": "standard rates; MiniMax-M3 <=512k input tokens",
+      "id": "minimax-paygo-pricing"
     },
     {
       "name": "MiniMax explicit prompt-caching pricing",
       "url": "https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache.md",
       "provider": "minimax",
-      "basis": "cache-read and cache-write rates for M2-family models"
+      "basis": "cache-read and cache-write rates for M2-family models",
+      "id": "minimax-cache-pricing"
     }
   ],
   "models": [
@@ -64,7 +73,12 @@
       "inputPerMillion": 5,
       "cacheReadPerMillion": 0.5,
       "cacheWritePerMillion": 6.25,
-      "outputPerMillion": 30
+      "outputPerMillion": 30,
+      "sourceIds": [
+        "openai-pricing",
+        "openai-gpt-5.6-guide"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.6-sol",
@@ -72,7 +86,11 @@
       "inputPerMillion": 5,
       "cacheReadPerMillion": 0.5,
       "cacheWritePerMillion": 6.25,
-      "outputPerMillion": 30
+      "outputPerMillion": 30,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.6-terra",
@@ -80,7 +98,11 @@
       "inputPerMillion": 2,
       "cacheReadPerMillion": 0.2,
       "cacheWritePerMillion": 2.5,
-      "outputPerMillion": 12
+      "outputPerMillion": 12,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.6-luna",
@@ -88,7 +110,11 @@
       "inputPerMillion": 0.2,
       "cacheReadPerMillion": 0.02,
       "cacheWritePerMillion": 0.25,
-      "outputPerMillion": 1.2
+      "outputPerMillion": 1.2,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.5",
@@ -96,7 +122,11 @@
       "inputPerMillion": 5,
       "cacheReadPerMillion": 0.5,
       "cacheWritePerMillion": 5,
-      "outputPerMillion": 30
+      "outputPerMillion": 30,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.5-pro",
@@ -104,7 +134,11 @@
       "inputPerMillion": 30,
       "cacheReadPerMillion": 30,
       "cacheWritePerMillion": 30,
-      "outputPerMillion": 180
+      "outputPerMillion": 180,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.4",
@@ -112,7 +146,11 @@
       "inputPerMillion": 2.5,
       "cacheReadPerMillion": 0.25,
       "cacheWritePerMillion": 2.5,
-      "outputPerMillion": 15
+      "outputPerMillion": 15,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.4-mini",
@@ -120,7 +158,11 @@
       "inputPerMillion": 0.75,
       "cacheReadPerMillion": 0.075,
       "cacheWritePerMillion": 0.75,
-      "outputPerMillion": 4.5
+      "outputPerMillion": 4.5,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.4-nano",
@@ -128,7 +170,11 @@
       "inputPerMillion": 0.2,
       "cacheReadPerMillion": 0.02,
       "cacheWritePerMillion": 0.2,
-      "outputPerMillion": 1.25
+      "outputPerMillion": 1.25,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.4-pro",
@@ -136,7 +182,11 @@
       "inputPerMillion": 30,
       "cacheReadPerMillion": 30,
       "cacheWritePerMillion": 30,
-      "outputPerMillion": 180
+      "outputPerMillion": 180,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.3-chat-latest",
@@ -144,7 +194,11 @@
       "inputPerMillion": 1.75,
       "cacheReadPerMillion": 0.175,
       "cacheWritePerMillion": 1.75,
-      "outputPerMillion": 14
+      "outputPerMillion": 14,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.3-codex",
@@ -152,7 +206,11 @@
       "inputPerMillion": 1.75,
       "cacheReadPerMillion": 0.175,
       "cacheWritePerMillion": 1.75,
-      "outputPerMillion": 14
+      "outputPerMillion": 14,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.2",
@@ -160,7 +218,11 @@
       "inputPerMillion": 1.75,
       "cacheReadPerMillion": 0.175,
       "cacheWritePerMillion": 1.75,
-      "outputPerMillion": 14
+      "outputPerMillion": 14,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.2-chat-latest",
@@ -168,7 +230,11 @@
       "inputPerMillion": 1.75,
       "cacheReadPerMillion": 0.175,
       "cacheWritePerMillion": 1.75,
-      "outputPerMillion": 14
+      "outputPerMillion": 14,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.2-pro",
@@ -176,7 +242,11 @@
       "inputPerMillion": 21,
       "cacheReadPerMillion": 21,
       "cacheWritePerMillion": 21,
-      "outputPerMillion": 168
+      "outputPerMillion": 168,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5.1",
@@ -184,7 +254,11 @@
       "inputPerMillion": 1.25,
       "cacheReadPerMillion": 0.125,
       "cacheWritePerMillion": 1.25,
-      "outputPerMillion": 10
+      "outputPerMillion": 10,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5",
@@ -192,7 +266,11 @@
       "inputPerMillion": 1.25,
       "cacheReadPerMillion": 0.125,
       "cacheWritePerMillion": 1.25,
-      "outputPerMillion": 10
+      "outputPerMillion": 10,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5-mini",
@@ -200,7 +278,11 @@
       "inputPerMillion": 0.25,
       "cacheReadPerMillion": 0.025,
       "cacheWritePerMillion": 0.25,
-      "outputPerMillion": 2
+      "outputPerMillion": 2,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5-nano",
@@ -208,7 +290,11 @@
       "inputPerMillion": 0.05,
       "cacheReadPerMillion": 0.005,
       "cacheWritePerMillion": 0.05,
-      "outputPerMillion": 0.4
+      "outputPerMillion": 0.4,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-5-pro",
@@ -216,7 +302,11 @@
       "inputPerMillion": 15,
       "cacheReadPerMillion": 15,
       "cacheWritePerMillion": 15,
-      "outputPerMillion": 120
+      "outputPerMillion": 120,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-4.1",
@@ -224,7 +314,11 @@
       "inputPerMillion": 2,
       "cacheReadPerMillion": 0.5,
       "cacheWritePerMillion": 2,
-      "outputPerMillion": 8
+      "outputPerMillion": 8,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-4.1-mini",
@@ -232,7 +326,11 @@
       "inputPerMillion": 0.4,
       "cacheReadPerMillion": 0.1,
       "cacheWritePerMillion": 0.4,
-      "outputPerMillion": 1.6
+      "outputPerMillion": 1.6,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-4.1-nano",
@@ -240,7 +338,11 @@
       "inputPerMillion": 0.1,
       "cacheReadPerMillion": 0.025,
       "cacheWritePerMillion": 0.1,
-      "outputPerMillion": 0.4
+      "outputPerMillion": 0.4,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-4o",
@@ -248,7 +350,11 @@
       "inputPerMillion": 2.5,
       "cacheReadPerMillion": 1.25,
       "cacheWritePerMillion": 2.5,
-      "outputPerMillion": 10
+      "outputPerMillion": 10,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-4o-2024-05-13",
@@ -256,7 +362,11 @@
       "inputPerMillion": 5,
       "cacheReadPerMillion": 5,
       "cacheWritePerMillion": 5,
-      "outputPerMillion": 15
+      "outputPerMillion": 15,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-4o-mini",
@@ -264,7 +374,11 @@
       "inputPerMillion": 0.15,
       "cacheReadPerMillion": 0.075,
       "cacheWritePerMillion": 0.15,
-      "outputPerMillion": 0.6
+      "outputPerMillion": 0.6,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "gpt-3.5-turbo",
@@ -272,7 +386,11 @@
       "inputPerMillion": 0.5,
       "cacheReadPerMillion": 0.5,
       "cacheWritePerMillion": 0.5,
-      "outputPerMillion": 1.5
+      "outputPerMillion": 1.5,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "grok-4.5",
@@ -280,7 +398,11 @@
       "inputPerMillion": 2,
       "cacheReadPerMillion": 0.3,
       "cacheWritePerMillion": 2,
-      "outputPerMillion": 6
+      "outputPerMillion": 6,
+      "sourceIds": [
+        "xai-pricing"
+      ],
+      "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "grok-build-0.1",
@@ -288,7 +410,11 @@
       "inputPerMillion": 1,
       "cacheReadPerMillion": 0.2,
       "cacheWritePerMillion": 1,
-      "outputPerMillion": 2
+      "outputPerMillion": 2,
+      "sourceIds": [
+        "xai-pricing"
+      ],
+      "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "grok-4.3",
@@ -296,7 +422,11 @@
       "inputPerMillion": 1.25,
       "cacheReadPerMillion": 0.2,
       "cacheWritePerMillion": 1.25,
-      "outputPerMillion": 2.5
+      "outputPerMillion": 2.5,
+      "sourceIds": [
+        "xai-pricing"
+      ],
+      "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "grok-4.20-multi-agent-0309",
@@ -304,7 +434,11 @@
       "inputPerMillion": 1.25,
       "cacheReadPerMillion": 0.2,
       "cacheWritePerMillion": 1.25,
-      "outputPerMillion": 2.5
+      "outputPerMillion": 2.5,
+      "sourceIds": [
+        "xai-pricing"
+      ],
+      "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "grok-4.20-0309-reasoning",
@@ -312,7 +446,11 @@
       "inputPerMillion": 1.25,
       "cacheReadPerMillion": 0.2,
       "cacheWritePerMillion": 1.25,
-      "outputPerMillion": 2.5
+      "outputPerMillion": 2.5,
+      "sourceIds": [
+        "xai-pricing"
+      ],
+      "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "grok-4.20-0309-non-reasoning",
@@ -320,7 +458,11 @@
       "inputPerMillion": 1.25,
       "cacheReadPerMillion": 0.2,
       "cacheWritePerMillion": 1.25,
-      "outputPerMillion": 2.5
+      "outputPerMillion": 2.5,
+      "sourceIds": [
+        "xai-pricing"
+      ],
+      "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
     },
     {
       "model": "kimi-k2.5",
@@ -328,7 +470,11 @@
       "inputPerMillion": 0.6,
       "cacheReadPerMillion": 0.1,
       "cacheWritePerMillion": 0.6,
-      "outputPerMillion": 3
+      "outputPerMillion": 3,
+      "sourceIds": [
+        "kimi-k2.5-pricing"
+      ],
+      "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
     {
       "model": "kimi-k2.6",
@@ -336,7 +482,11 @@
       "inputPerMillion": 0.95,
       "cacheReadPerMillion": 0.16,
       "cacheWritePerMillion": 0.95,
-      "outputPerMillion": 4
+      "outputPerMillion": 4,
+      "sourceIds": [
+        "kimi-k2.6-pricing"
+      ],
+      "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
     {
       "model": "kimi-k2.7-code",
@@ -344,7 +494,11 @@
       "inputPerMillion": 0.95,
       "cacheReadPerMillion": 0.19,
       "cacheWritePerMillion": 0.95,
-      "outputPerMillion": 4
+      "outputPerMillion": 4,
+      "sourceIds": [
+        "kimi-k2.7-code-pricing"
+      ],
+      "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
     {
       "model": "kimi-k2.7-code-highspeed",
@@ -352,7 +506,11 @@
       "inputPerMillion": 1.9,
       "cacheReadPerMillion": 0.38,
       "cacheWritePerMillion": 1.9,
-      "outputPerMillion": 8
+      "outputPerMillion": 8,
+      "sourceIds": [
+        "kimi-k2.7-code-pricing"
+      ],
+      "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
     {
       "model": "kimi-k3",
@@ -360,7 +518,11 @@
       "inputPerMillion": 3,
       "cacheReadPerMillion": 0.3,
       "cacheWritePerMillion": 3,
-      "outputPerMillion": 15
+      "outputPerMillion": 15,
+      "sourceIds": [
+        "kimi-k3-pricing"
+      ],
+      "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
     {
       "model": "MiniMax-M3",
@@ -368,7 +530,11 @@
       "inputPerMillion": 0.3,
       "cacheReadPerMillion": 0.06,
       "cacheWritePerMillion": 0.3,
-      "outputPerMillion": 1.2
+      "outputPerMillion": 1.2,
+      "sourceIds": [
+        "minimax-paygo-pricing"
+      ],
+      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
     },
     {
       "model": "MiniMax-M2.7",
@@ -376,7 +542,12 @@
       "inputPerMillion": 0.3,
       "cacheReadPerMillion": 0.06,
       "cacheWritePerMillion": 0.375,
-      "outputPerMillion": 1.2
+      "outputPerMillion": 1.2,
+      "sourceIds": [
+        "minimax-paygo-pricing",
+        "minimax-cache-pricing"
+      ],
+      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
     },
     {
       "model": "MiniMax-M2.7-highspeed",
@@ -384,7 +555,12 @@
       "inputPerMillion": 0.6,
       "cacheReadPerMillion": 0.06,
       "cacheWritePerMillion": 0.375,
-      "outputPerMillion": 2.4
+      "outputPerMillion": 2.4,
+      "sourceIds": [
+        "minimax-paygo-pricing",
+        "minimax-cache-pricing"
+      ],
+      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
     },
     {
       "model": "MiniMax-M2.5",
@@ -392,7 +568,12 @@
       "inputPerMillion": 0.3,
       "cacheReadPerMillion": 0.03,
       "cacheWritePerMillion": 0.375,
-      "outputPerMillion": 1.2
+      "outputPerMillion": 1.2,
+      "sourceIds": [
+        "minimax-paygo-pricing",
+        "minimax-cache-pricing"
+      ],
+      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
     },
     {
       "model": "MiniMax-M2.5-highspeed",
@@ -400,7 +581,12 @@
       "inputPerMillion": 0.6,
       "cacheReadPerMillion": 0.03,
       "cacheWritePerMillion": 0.375,
-      "outputPerMillion": 2.4
+      "outputPerMillion": 2.4,
+      "sourceIds": [
+        "minimax-paygo-pricing",
+        "minimax-cache-pricing"
+      ],
+      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
     },
     {
       "model": "MiniMax-M2.1",
@@ -408,7 +594,12 @@
       "inputPerMillion": 0.3,
       "cacheReadPerMillion": 0.03,
       "cacheWritePerMillion": 0.375,
-      "outputPerMillion": 1.2
+      "outputPerMillion": 1.2,
+      "sourceIds": [
+        "minimax-paygo-pricing",
+        "minimax-cache-pricing"
+      ],
+      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
     },
     {
       "model": "MiniMax-M2.1-highspeed",
@@ -416,7 +607,12 @@
       "inputPerMillion": 0.6,
       "cacheReadPerMillion": 0.03,
       "cacheWritePerMillion": 0.375,
-      "outputPerMillion": 2.4
+      "outputPerMillion": 2.4,
+      "sourceIds": [
+        "minimax-paygo-pricing",
+        "minimax-cache-pricing"
+      ],
+      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
     },
     {
       "model": "MiniMax-M2",
@@ -424,7 +620,12 @@
       "inputPerMillion": 0.3,
       "cacheReadPerMillion": 0.03,
       "cacheWritePerMillion": 0.375,
-      "outputPerMillion": 1.2
+      "outputPerMillion": 1.2,
+      "sourceIds": [
+        "minimax-paygo-pricing",
+        "minimax-cache-pricing"
+      ],
+      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
     },
     {
       "model": "MiniMax-M2-Stable",
@@ -432,7 +633,12 @@
       "inputPerMillion": 0.3,
       "cacheReadPerMillion": 0.03,
       "cacheWritePerMillion": 0.375,
-      "outputPerMillion": 1.2
+      "outputPerMillion": 1.2,
+      "sourceIds": [
+        "minimax-paygo-pricing",
+        "minimax-cache-pricing"
+      ],
+      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
     }
   ]
 }

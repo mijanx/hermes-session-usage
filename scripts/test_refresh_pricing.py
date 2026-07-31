@@ -16,14 +16,21 @@ class CreateSnapshotTests(unittest.TestCase):
         catalog = {
             "openai": {
                 "models": {
-                    "gpt-test": {
+                    "GPT-Test": {
                         "cost": {
                             "input": 99,
                             "cache_read": 98,
                             "cache_write": 97,
                             "output": 96,
                         }
-                    }
+                    },
+                    "fallback-only": {
+                        "cost": {
+                            "input": 3,
+                            "cache_read": 0.3,
+                            "output": 9,
+                        }
+                    },
                 }
             }
         }
@@ -31,6 +38,7 @@ class CreateSnapshotTests(unittest.TestCase):
             "retrievedAt": "2026-07-31T09:18:47Z",
             "sources": [
                 {
+                    "id": "openai-pricing",
                     "name": "OpenAI API pricing",
                     "url": "https://developers.openai.com/api/docs/pricing.md",
                     "provider": "openai",
@@ -45,6 +53,8 @@ class CreateSnapshotTests(unittest.TestCase):
                     "cacheReadPerMillion": 0.5,
                     "cacheWritePerMillion": 6.25,
                     "outputPerMillion": 30,
+                    "sourceIds": ["openai-pricing"],
+                    "basis": "standard",
                 },
                 {
                     "model": "official-only",
@@ -53,6 +63,8 @@ class CreateSnapshotTests(unittest.TestCase):
                     "cacheReadPerMillion": 0.1,
                     "cacheWritePerMillion": 1,
                     "outputPerMillion": 2,
+                    "sourceIds": ["openai-pricing"],
+                    "basis": "standard",
                 },
             ],
         }
@@ -67,9 +79,15 @@ class CreateSnapshotTests(unittest.TestCase):
         models = {entry["model"]: entry for entry in snapshot["models"]}
         self.assertEqual(5, models["gpt-test"]["inputPerMillion"])
         self.assertEqual(30, models["gpt-test"]["outputPerMillion"])
+        self.assertEqual(["openai-pricing"], models["gpt-test"]["sourceIds"])
         self.assertIn("official-only", models)
+        self.assertIn("fallback-only", models)
+        self.assertEqual(["models-dev"], models["fallback-only"]["sourceIds"])
+        self.assertEqual(3, models["fallback-only"]["cacheWritePerMillion"])
         self.assertEqual("openai", snapshot["sources"][0]["provider"])
         self.assertEqual("models.dev fallback", snapshot["sources"][-1]["name"])
+        self.assertEqual("models-dev", snapshot["sources"][-1]["id"])
+        self.assertEqual("merged-snapshot", snapshot["source"]["id"])
         self.assertEqual("2026-07-31T09:18:47Z", snapshot["sources"][-1]["retrievedAt"])
 
     def test_official_provider_file_contains_documented_rates(self) -> None:
@@ -81,6 +99,7 @@ class CreateSnapshotTests(unittest.TestCase):
 
         expected = {
             "gpt-5.6-sol": (5, 0.5, 6.25, 30),
+            "gpt-5.3-codex": (1.75, 0.175, 1.75, 14),
             "grok-4.5": (2, 0.3, 2, 6),
             "kimi-k2.6": (0.95, 0.16, 0.95, 4),
             "MiniMax-M3": (0.3, 0.06, 0.3, 1.2),
@@ -98,6 +117,24 @@ class CreateSnapshotTests(unittest.TestCase):
                 ),
                 model,
             )
+
+        source_ids = {source["id"] for source in document["sources"]}
+        self.assertEqual(len(document["sources"]), len(source_ids))
+        self.assertEqual(
+            len(document["models"]),
+            len({entry["model"].casefold() for entry in document["models"]}),
+        )
+        for entry in document["models"]:
+            self.assertTrue(entry["basis"], entry["model"])
+            self.assertTrue(entry["sourceIds"], entry["model"])
+            self.assertTrue(set(entry["sourceIds"]).issubset(source_ids), entry["model"])
+            for field in (
+                "inputPerMillion",
+                "cacheReadPerMillion",
+                "cacheWritePerMillion",
+                "outputPerMillion",
+            ):
+                self.assertGreaterEqual(entry[field], 0, f"{entry['model']}:{field}")
 
 
 if __name__ == "__main__":

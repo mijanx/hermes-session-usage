@@ -41,7 +41,7 @@ The checked-in `HermesSessionMetrics.Web/data/api-pricing.json` file combines au
 
 | Provider | Official pricing source | Basis used |
 |---|---|---|
-| OpenAI | [API pricing](https://developers.openai.com/api/docs/pricing.md) | Standard, short-context text-token rates |
+| OpenAI | [API pricing](https://developers.openai.com/api/docs/pricing.md) and [latest-model guide](https://developers.openai.com/api/docs/guides/latest-model) | Standard, short-context text-token rates; guide-backed `gpt-5.6` alias |
 | xAI | [API pricing](https://docs.x.ai/developers/pricing.md) | Standard, short-context rates below 200k prompt tokens |
 | Kimi | [K2.5](https://platform.kimi.ai/docs/pricing/chat-k25.md), [K2.6](https://platform.kimi.ai/docs/pricing/chat-k26.md), [K2.7 Code](https://platform.kimi.ai/docs/pricing/chat-k27-code.md), and [K3](https://platform.kimi.ai/docs/pricing/chat-k3.md) | Cache-hit, cache-miss, and output rates |
 | MiniMax | [Pay-as-you-go](https://platform.minimax.io/docs/guides/pricing-paygo.md) and [prompt caching](https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache.md) | Standard rates; M3 uses the ≤512k tier |
@@ -69,7 +69,7 @@ Important limitations:
 - Standard base rates are used. OpenAI, xAI, and MiniMax context-length uplifts cannot be reconstructed because per-request context sizes are not stored in the aggregate table.
 - If an official page publishes cache-read pricing but no separate cache-write price, cache writes use the ordinary input/cache-miss rate rather than inventing a discount.
 - Reasoning tokens are displayed separately and are not added again; providers commonly include them in output accounting.
-- Pricing changes over time. `GET /api/pricing` exposes every official source URL, pricing basis, and retrieval timestamp plus the models.dev fallback provenance.
+- Pricing changes over time. `GET /api/pricing` exposes every normalized model rate with its `sourceIds` and basis, plus the complete source list, retrieval timestamps, and models.dev fallback provenance.
 
 ## Test and verify
 

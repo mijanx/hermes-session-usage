@@ -8,7 +8,9 @@ public sealed record ApiPriceEntry(
     decimal InputPerMillion,
     decimal CacheReadPerMillion,
     decimal CacheWritePerMillion,
-    decimal OutputPerMillion);
+    decimal OutputPerMillion,
+    IReadOnlyList<string>? SourceIds = null,
+    string? Basis = null);
 
 public readonly record struct ApiPriceEstimate(decimal CostUsd, string Provider);
 
@@ -17,7 +19,8 @@ public sealed record ApiPricingSource(
     string Url,
     DateTimeOffset RetrievedAt,
     string? Provider = null,
-    string? Basis = null);
+    string? Basis = null,
+    string? Id = null);
 
 public sealed record ApiPricingDocument(
     int SchemaVersion,
@@ -45,6 +48,10 @@ public sealed class ApiPricingCatalog
 
     public IReadOnlyList<ApiPricingSource> Sources { get; }
 
+    public IReadOnlyList<ApiPriceEntry> Entries => _entries.Values
+        .OrderBy(x => x.Model, StringComparer.OrdinalIgnoreCase)
+        .ToArray();
+
     public int Count => _entries.Count;
 
     public static ApiPricingCatalog FromEntries(
@@ -70,6 +77,16 @@ public sealed class ApiPricingCatalog
                                      x.InputPerMillion < 0 || x.CacheReadPerMillion < 0 ||
                                      x.CacheWritePerMillion < 0 || x.OutputPerMillion < 0))
             throw new InvalidDataException("The API pricing document contains an invalid model entry.");
+
+        var sourceIds = (document.Sources ?? [])
+            .Select(x => x.Id)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Cast<string>()
+            .ToArray();
+        if (sourceIds.Length != sourceIds.Distinct(StringComparer.OrdinalIgnoreCase).Count() ||
+            document.Models.Any(x => x.SourceIds is { Count: > 0 } &&
+                                     x.SourceIds.Any(id => !sourceIds.Contains(id, StringComparer.OrdinalIgnoreCase))))
+            throw new InvalidDataException("The API pricing document contains invalid provenance references.");
 
         return FromEntries(document.Models, document.Source, document.Sources);
     }
