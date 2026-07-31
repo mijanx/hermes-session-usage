@@ -9,7 +9,8 @@ const state = {
   offset: 0,
   loading: false,
   result: null,
-  controller: null
+  controller: null,
+  expandedFamilies: new Set()
 };
 
 const $ = id => document.getElementById(id);
@@ -125,61 +126,114 @@ function taskBadge(task) {
   return `<span class="task-badge ${auxiliary ? "aux" : ""}">${escapeHtml(task)}</span>`;
 }
 
-function renderSessionRows(sessions) {
-  if (!sessions.length) {
-    $("sessionRows").innerHTML = `<tr><td colspan="13" class="empty">No sessions match this window and filter.</td></tr>`;
+function familyMemberDepth(session, family) {
+  if (family.rootIncluded && session.id === family.rootSessionId) return 0;
+  const byId = new Map(family.sessions.map(member => [member.id, member]));
+  const visited = new Set([session.id]);
+  let current = session;
+  let depth = 0;
+  while (current.parentSessionId && depth < family.sessions.length) {
+    depth += 1;
+    if (current.parentSessionId === family.rootSessionId) break;
+    const parent = byId.get(current.parentSessionId);
+    if (!parent || visited.has(parent.id)) break;
+    visited.add(parent.id);
+    current = parent;
+  }
+  return Math.max(1, depth);
+}
+
+function renderSessionRows(families) {
+  if (!families.length) {
+    $("sessionRows").innerHTML = `<tr><td colspan="13" class="empty">No session families match this window and filter.</td></tr>`;
     return;
   }
 
   const rows = [];
-  sessions.forEach(session => {
-    const lines = session.usageLines.length ? session.usageLines : [{ model: session.primaryModel, provider: "", task: "agent", apiCalls: session.apiCalls, inputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, outputTokens: 0, reasoningTokens: session.reasoningTokens, accountedTokens: session.accountedTokens, estimatedCostUsd: session.estimatedCostUsd, apiEquivalentCostUsd: null }];
-    const rowSpan = lines.length;
-    lines.forEach((line, index) => {
-      const first = index === 0;
-      const childBadge = session.isChild
-        ? `<span class="child-badge" title="Parent: ${escapeHtml(session.parentSessionId)}">CHILD</span>`
-        : "";
-      const sessionCells = first ? `
-        <td rowspan="${rowSpan}" class="session-cell">
-          <div class="session-title"><span class="profile-badge">${escapeHtml(session.profile)}</span>${childBadge}${escapeHtml(session.title)}</div>
-          <div class="session-id">${escapeHtml(session.id)}${session.isChild ? `<br>parent: ${escapeHtml(session.parentSessionId)}` : ""}</div>
-        </td>
-        <td rowspan="${rowSpan}">${dateTime.format(new Date(session.startedAt))}<div class="provider">${escapeHtml(session.source)}</div></td>
-        <td rowspan="${rowSpan}"><span class="status-badge ${session.status === "active" ? "" : "closed"}">${escapeHtml(session.status)}</span></td>
-        <td rowspan="${rowSpan}" class="number"><strong>${number.format(session.accountedTokens)}</strong><div class="provider">${number.format(session.apiCalls)} calls</div></td>` : "";
-      const cache = (line.cacheReadTokens || 0) + (line.cacheWriteTokens || 0);
-      const displayedCost = state.costBasis === "api-equivalent" ? line.apiEquivalentCostUsd : line.estimatedCostUsd;
-      const costClass = displayedCost > 0 ? "cost-metered" : "";
-      const costText = displayedCost == null ? "—" : usd.format(displayedCost);
-      rows.push(`<tr class="${first ? "group-start" : ""}">
-        ${sessionCells}
-        <td>${taskBadge(line.task)}</td>
-        <td><div class="model">${escapeHtml(line.model)}</div><div class="provider">${escapeHtml(line.provider || "unattributed")}${line.billingMode ? ` · ${escapeHtml(line.billingMode)}` : ""}</div></td>
-        <td class="number">${number.format(line.apiCalls || 0)}</td>
-        <td class="number">${number.format(line.inputTokens || 0)}</td>
-        <td class="number">${number.format(cache)}</td>
-        <td class="number">${number.format(line.outputTokens || 0)}</td>
-        <td class="number">${number.format(line.reasoningTokens || 0)}</td>
-        <td class="number"><strong>${number.format(line.accountedTokens || 0)}</strong></td>
-        <td class="number ${costClass}" title="${state.costBasis === "api-equivalent" && line.apiEquivalentPricingProvider ? `Direct ${escapeHtml(line.apiEquivalentPricingProvider)} API rate` : ""}">${costText}</td>
-      </tr>`);
+  families.forEach(family => {
+    const familyKey = `${family.profile}::${family.rootSessionId}`;
+    const expanded = state.expandedFamilies.has(familyKey);
+    const visibleSessions = expanded ? family.sessions : family.sessions.slice(0, 1);
+    visibleSessions.forEach((session, memberIndex) => {
+      const familySize = family.sessions.length;
+      const collapsedFamily = !expanded && familySize > 1;
+      const usageLines = collapsedFamily ? family.usageLines : session.usageLines;
+      const aggregate = collapsedFamily ? family : session;
+      const lines = usageLines.length ? usageLines : [{ model: "session totals", provider: "unattributed", task: "unattributed", apiCalls: aggregate.apiCalls, inputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, outputTokens: 0, reasoningTokens: aggregate.reasoningTokens, accountedTokens: aggregate.accountedTokens, estimatedCostUsd: aggregate.estimatedCostUsd, apiEquivalentCostUsd: null }];
+      const rowSpan = lines.length;
+      const isFirstMember = memberIndex === 0;
+      const isRoot = family.rootIncluded && session.id === family.rootSessionId;
+      const memberDepth = familyMemberDepth(session, family);
+      lines.forEach((line, lineIndex) => {
+        const firstLine = lineIndex === 0;
+        const familyBadge = isFirstMember && familySize > 1
+          ? `<span class="family-badge">FAMILY · ${number.format(familySize)}</span>`
+          : "";
+        const childBadge = !isRoot
+          ? `<span class="child-badge" title="Parent: ${escapeHtml(session.parentSessionId || family.rootSessionId)}">CHILD</span>`
+          : "";
+        const parentReference = !family.rootIncluded && isFirstMember
+          ? `<br>parent outside result: ${escapeHtml(family.rootSessionId)}`
+          : (session.isChild ? `<br>parent: ${escapeHtml(session.parentSessionId)}` : "");
+        const familyTotal = isFirstMember && familySize > 1
+          ? `<strong>${number.format(family.accountedTokens)}</strong><div class="provider">family total · ${number.format(session.accountedTokens)} this process · ${number.format(family.apiCalls)} calls</div>`
+          : `<strong>${number.format(session.accountedTokens)}</strong><div class="provider">${number.format(session.apiCalls)} calls</div>`;
+        const familyToggle = isFirstMember && familySize > 1
+          ? `<button type="button" class="family-toggle" data-family-key="${escapeHtml(familyKey)}" aria-expanded="${expanded}">${expanded ? "Hide" : "Show"} ${number.format(familySize - 1)} child process${familySize === 2 ? "" : "es"}</button>`
+          : "";
+        const sessionCells = firstLine ? `
+          <td rowspan="${rowSpan}" class="session-cell ${!isRoot ? "child-session" : ""}" style="--family-depth:${memberDepth}">
+            <div class="session-title">${familyBadge}<span class="profile-badge">${escapeHtml(session.profile)}</span>${childBadge}${!isRoot ? `<span class="branch">↳</span>` : ""}${escapeHtml(session.title)}</div>
+            <div class="session-id">${escapeHtml(session.id)}${parentReference}</div>
+            ${familyToggle}
+          </td>
+          <td rowspan="${rowSpan}">${dateTime.format(new Date(session.startedAt))}<div class="provider">${escapeHtml(session.source)}</div></td>
+          <td rowspan="${rowSpan}"><span class="status-badge ${session.status === "active" ? "" : "closed"}">${escapeHtml(session.status)}</span></td>
+          <td rowspan="${rowSpan}" class="number">${familyTotal}</td>` : "";
+        const cache = (line.cacheReadTokens || 0) + (line.cacheWriteTokens || 0);
+        const displayedCost = state.costBasis === "api-equivalent" ? line.apiEquivalentCostUsd : line.estimatedCostUsd;
+        const costClass = displayedCost > 0 ? "cost-metered" : "";
+        const costText = displayedCost == null ? "—" : usd.format(displayedCost);
+        const rowClasses = [
+          isFirstMember && firstLine ? "family-start" : "",
+          firstLine ? "member-start" : "",
+          !isRoot ? "child-row" : ""
+        ].filter(Boolean).join(" ");
+        rows.push(`<tr class="${rowClasses}">
+          ${sessionCells}
+          <td>${taskBadge(line.task)}</td>
+          <td><div class="model">${escapeHtml(line.model)}</div><div class="provider">${escapeHtml(line.provider || "unattributed")}${line.billingMode ? ` · ${escapeHtml(line.billingMode)}` : ""}</div></td>
+          <td class="number">${number.format(line.apiCalls || 0)}</td>
+          <td class="number">${number.format(line.inputTokens || 0)}</td>
+          <td class="number">${number.format(cache)}</td>
+          <td class="number">${number.format(line.outputTokens || 0)}</td>
+          <td class="number">${number.format(line.reasoningTokens || 0)}</td>
+          <td class="number"><strong>${number.format(line.accountedTokens || 0)}</strong></td>
+          <td class="number ${costClass}" title="${state.costBasis === "api-equivalent" && line.apiEquivalentPricingProvider ? `Direct ${escapeHtml(line.apiEquivalentPricingProvider)} API rate` : ""}">${costText}</td>
+        </tr>`);
+      });
     });
   });
   $("sessionRows").innerHTML = rows.join("");
+  $("sessionRows").querySelectorAll("[data-family-key]").forEach(button => button.addEventListener("click", () => {
+    const key = button.dataset.familyKey;
+    if (state.expandedFamilies.has(key)) state.expandedFamilies.delete(key);
+    else state.expandedFamilies.add(key);
+    renderSessionRows(families);
+  }));
 }
 
 function render() {
   const result = state.result;
   renderSummary(result);
-  renderSessionRows(result.sessions);
+  renderSessionRows(result.families);
   $("costHeader").textContent = state.costBasis === "api-equivalent" ? "API equivalent" : "Recorded cost";
-  const first = result.filteredSessions ? state.offset + 1 : 0;
-  const last = Math.min(state.offset + result.sessions.length, result.filteredSessions);
-  $("resultMeta").textContent = `${number.format(first)}–${number.format(last)} of ${number.format(result.filteredSessions)} sessions · ${result.queryElapsedMilliseconds} ms database query · snapshot ${dateTime.format(new Date(result.generatedAt))}`;
+  const first = result.filteredFamilies ? state.offset + 1 : 0;
+  const last = Math.min(state.offset + result.families.length, result.filteredFamilies);
+  $("resultMeta").textContent = `${number.format(first)}–${number.format(last)} of ${number.format(result.filteredFamilies)} families · ${number.format(result.filteredSessions)} sessions · ${result.queryElapsedMilliseconds} ms database query · snapshot ${dateTime.format(new Date(result.generatedAt))}`;
   $("pageStatus").textContent = `Page ${Math.floor(state.offset / state.limit) + 1}`;
   $("previousPage").disabled = state.offset === 0;
-  $("nextPage").disabled = state.offset + result.sessions.length >= result.filteredSessions;
+  $("nextPage").disabled = state.offset + result.families.length >= result.filteredFamilies;
 }
 
 function debounce(fn, milliseconds) {

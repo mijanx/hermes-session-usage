@@ -6,8 +6,9 @@ A local-first, read-only dashboard for exploring Hermes session token usage, mod
 
 - Discovers `~/.hermes/state.db` and immediate `~/.hermes/profiles/*/state.db` profile databases.
 - Fixed activity windows: **24 hours**, **7 days**, and **30 days**.
-- Groups each session into `(model, provider, billing mode, task)` usage lines.
-- Marks child sessions and displays their parent session ID.
+- Groups parent sessions and their descendants into sortable, pagination-safe session families.
+- Collapses usage into `(model, task)` lines while retaining every observed provider/billing label.
+- Marks attached child sessions and displays their immediate parent session ID.
 - Shows input, cache read/write, output, reasoning, accounted tokens, API calls, and costs.
 - Switches between provider-recorded cost and **API-equivalent** cost.
 - Searches, sorts, paginates, and combines multiple profiles.
@@ -109,6 +110,8 @@ GET /api/metrics?profiles=default&window=7d&search=compression&sort=tokens&costB
 
 Allowed windows are `24h`, `7d`, and `30d`. Use `profiles=all` for every discovered live profile. Profile responses expose names and database sizes, not local filesystem paths.
 
+`/api/metrics` currently returns response schema **v2**, identified by `schemaVersion: 2`. V2 is intentionally family-oriented: the former top-level `sessions` page was replaced by `families`, and each family contains its member `sessions` plus family-wide `usageLines`. Consumers written for the earlier unversioned shape must migrate to `families`.
+
 ## Query semantics
 
 A session is in the selected window when either:
@@ -117,6 +120,10 @@ A session is in the selected window when either:
 2. at least one usage line has `last_seen`/`first_seen` after the cutoff.
 
 This includes long-running sessions active during the period. Quarantine, backup, nested, and test databases are not discovered.
+
+Matching sessions are grouped by their highest known ancestor from the profile's session graph before sorting and pagination; nonmatching intermediate sessions preserve lineage but are not included in family totals or member rows. If an ancestor falls outside the selected window/search result, matching descendants remain grouped and the UI labels that parent as outside the result. Family sorting uses aggregate family tokens, calls, or cost, while summary totals still count each matching session exactly once. Families are collapsed by default: the visible model/task lines and totals aggregate the full family, and the child-process toggle reveals each matching process separately.
+
+Within each session, rows with the same case-insensitive `(model, task)` identity are merged even when attribution differs. Token, call, and cost counters are summed; distinct provider and billing labels are retained as comma-separated labels, with blank providers shown as `unattributed`.
 
 ```text
 accounted tokens = input + cache read + cache write + output

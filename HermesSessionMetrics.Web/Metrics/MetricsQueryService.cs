@@ -21,28 +21,34 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
         var cutoff = now.AddHours(-query.Hours);
         var totalSessions = 0;
         var sessions = new List<SessionMetrics>();
+        var parentIndexes = new Dictionary<string, IReadOnlyDictionary<string, string?>>(StringComparer.Ordinal);
 
         foreach (var profile in profiles)
         {
             var result = await QueryProfileAsync(profile, cutoff, query.Search, cancellationToken);
             totalSessions += result.TotalSessions;
             sessions.AddRange(result.Sessions);
+            parentIndexes[profile.Name] = result.ParentIndex;
         }
 
-        var ordered = Order(sessions, query.Sort, query.Descending, query.CostBasis).ToArray();
-        var filteredSessions = ordered.Length;
+        var families = BuildFamilies(sessions, parentIndexes);
+        var ordered = Order(families, query.Sort, query.Descending, query.CostBasis).ToArray();
+        var filteredSessions = sessions.Count;
+        var filteredFamilies = ordered.Length;
         var limit = Math.Clamp(query.Limit, 1, 1_000);
         var offset = Math.Max(query.Offset, 0);
         var page = ordered.Skip(offset).Take(limit).ToArray();
 
         watch.Stop();
         return new MetricsResult(
+            2,
             now,
             cutoff,
             query.Hours,
             profiles.Select(x => x.Name).ToArray(),
             totalSessions,
             filteredSessions,
+            filteredFamilies,
             sessions.Sum(x => x.AccountedTokens),
             sessions.Sum(x => x.ReasoningTokens),
             sessions.Sum(x => x.ApiCalls),
@@ -56,13 +62,13 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
             watch.ElapsedMilliseconds);
     }
 
-    private static IOrderedEnumerable<SessionMetrics> Order(
-        IEnumerable<SessionMetrics> sessions,
+    private static IOrderedEnumerable<SessionFamilyMetrics> Order(
+        IEnumerable<SessionFamilyMetrics> families,
         string sort,
         bool descending,
         string costBasis)
     {
-        Func<SessionMetrics, IComparable> key = sort.ToLowerInvariant() switch
+        Func<SessionFamilyMetrics, IComparable> key = sort.ToLowerInvariant() switch
         {
             "started" => x => x.StartedAt,
             "cost" when costBasis.Equals("api-equivalent", StringComparison.OrdinalIgnoreCase) => x => x.ApiEquivalentCostUsd,
@@ -71,10 +77,210 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
             _ => x => x.AccountedTokens
         };
 
-        return descending
-            ? sessions.OrderByDescending(key).ThenByDescending(x => x.StartedAt)
-            : sessions.OrderBy(key).ThenBy(x => x.StartedAt);
+        var ordered = descending
+            ? families.OrderByDescending(key).ThenByDescending(x => x.StartedAt)
+            : families.OrderBy(key).ThenBy(x => x.StartedAt);
+
+        return ordered
+            .ThenBy(x => x.Profile, StringComparer.Ordinal)
+            .ThenBy(x => x.RootSessionId, StringComparer.Ordinal);
     }
+
+    private static IReadOnlyList<SessionFamilyMetrics> BuildFamilies(
+        IReadOnlyList<SessionMetrics> sessions,
+        IReadOnlyDictionary<string, IReadOnlyDictionary<string, string?>> parentIndexes)
+    {
+        var families = new List<SessionFamilyMetrics>();
+        foreach (var profileSessions in sessions.GroupBy(x => x.Profile, StringComparer.Ordinal))
+        {
+            var parentIndex = parentIndexes[profileSessions.Key];
+            var rootCache = new Dictionary<string, string>(StringComparer.Ordinal);
+            var grouped = profileSessions.GroupBy(
+                x => ResolveRootSessionId(x.Id, parentIndex, rootCache),
+                StringComparer.Ordinal);
+            foreach (var group in grouped)
+            {
+                var members = OrderFamilyMembers(group.Key, group.ToArray());
+                var root = members.FirstOrDefault(x => x.Id == group.Key);
+                families.Add(new SessionFamilyMetrics(
+                    profileSessions.Key,
+                    group.Key,
+                    root is not null,
+                    root?.StartedAt ?? members.Min(x => x.StartedAt),
+                    members.Sum(x => x.AccountedTokens),
+                    members.Sum(x => x.ReasoningTokens),
+                    members.Sum(x => x.ApiCalls),
+                    members.Sum(x => x.EstimatedCostUsd),
+                    members.Sum(x => x.ActualCostUsd),
+                    members.Sum(x => x.ApiEquivalentCostUsd),
+                    members.Sum(x => x.ApiEquivalentPricedTokens),
+                    members.Sum(x => x.ApiEquivalentUnpricedTokens),
+                    members,
+                    BuildFamilyUsageLines(members)));
+            }
+        }
+
+        return families;
+    }
+
+    private static string ResolveRootSessionId(
+        string sessionId,
+        IReadOnlyDictionary<string, string?> parentIndex,
+        IDictionary<string, string> cache)
+    {
+        if (cache.TryGetValue(sessionId, out var cachedRoot)) return cachedRoot;
+
+        var path = new List<string>();
+        var positions = new Dictionary<string, int>(StringComparer.Ordinal);
+        var currentId = sessionId;
+        string root;
+
+        while (true)
+        {
+            if (cache.TryGetValue(currentId, out var knownRoot))
+            {
+                root = knownRoot;
+                break;
+            }
+            if (positions.TryGetValue(currentId, out var cycleStart))
+            {
+                root = path.Skip(cycleStart).Min(StringComparer.Ordinal)!;
+                break;
+            }
+
+            positions[currentId] = path.Count;
+            path.Add(currentId);
+            if (!parentIndex.TryGetValue(currentId, out var parentId) || string.IsNullOrWhiteSpace(parentId))
+            {
+                root = currentId;
+                break;
+            }
+
+            currentId = parentId;
+        }
+
+        foreach (var id in path) cache[id] = root;
+        return root;
+    }
+
+    private static IReadOnlyList<SessionMetrics> OrderFamilyMembers(
+        string rootSessionId,
+        IReadOnlyList<SessionMetrics> members)
+    {
+        var byParent = members
+            .Where(x => !string.IsNullOrWhiteSpace(x.ParentSessionId))
+            .GroupBy(x => x.ParentSessionId!, StringComparer.Ordinal)
+            .ToDictionary(
+                x => x.Key,
+                x => x.OrderBy(y => y.StartedAt).ThenBy(y => y.Id, StringComparer.Ordinal).ToArray(),
+                StringComparer.Ordinal);
+        var byId = members.ToDictionary(x => x.Id, StringComparer.Ordinal);
+        var ordered = new List<SessionMetrics>(members.Count);
+        var visited = new HashSet<string>(StringComparer.Ordinal);
+
+        void Visit(SessionMetrics member)
+        {
+            if (!visited.Add(member.Id)) return;
+            ordered.Add(member);
+            if (byParent.TryGetValue(member.Id, out var children))
+                foreach (var child in children) Visit(child);
+        }
+
+        if (byId.TryGetValue(rootSessionId, out var root)) Visit(root);
+        else if (byParent.TryGetValue(rootSessionId, out var children))
+            foreach (var child in children) Visit(child);
+
+        foreach (var member in members.OrderBy(x => x.StartedAt).ThenBy(x => x.Id, StringComparer.Ordinal))
+            Visit(member);
+
+        return ordered;
+    }
+
+    private static IReadOnlyList<UsageLine> BuildFamilyUsageLines(IReadOnlyList<SessionMetrics> members)
+    {
+        var merged = MergeUsageLines(members.SelectMany(x => x.UsageLines));
+        var residualCalls = Math.Max(0, members.Sum(x => x.ApiCalls) - merged.Sum(x => x.ApiCalls));
+        if (residualCalls == 0) return merged;
+
+        return MergeUsageLines(merged.Append(SessionTotalsUsageLine(residualCalls)));
+    }
+
+    private static UsageLine SessionTotalsUsageLine(long apiCalls) => new(
+        "session totals",
+        "unattributed",
+        string.Empty,
+        "unattributed",
+        apiCalls,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        null,
+        null,
+        "session-only",
+        "sessions.api_call_count");
+
+    private static IReadOnlyList<UsageLine> MergeUsageLines(IEnumerable<UsageLine> usage) => usage
+        .GroupBy(x => (x.Model, x.Task), ModelTaskComparer.Instance)
+        .Select(MergeUsage)
+        .OrderByDescending(x => x.AccountedTokens)
+        .ThenBy(x => x.Model)
+        .ThenBy(x => x.Task)
+        .ToArray();
+
+    private static UsageLine MergeUsage(IGrouping<(string Model, string Task), UsageLine> group)
+    {
+        var lines = group.ToArray();
+        return new UsageLine(
+            group.Key.Model,
+            MergeLabels(lines.Select(x => x.Provider), includeUnattributed: true),
+            MergeLabels(lines.Select(x => x.BillingMode), includeUnattributed: false),
+            group.Key.Task,
+            lines.Sum(x => x.ApiCalls),
+            lines.Sum(x => x.InputTokens),
+            lines.Sum(x => x.CacheReadTokens),
+            lines.Sum(x => x.CacheWriteTokens),
+            lines.Sum(x => x.OutputTokens),
+            lines.Sum(x => x.ReasoningTokens),
+            lines.Sum(x => x.AccountedTokens),
+            lines.Sum(x => x.EstimatedCostUsd),
+            lines.Sum(x => x.ActualCostUsd),
+            lines.All(x => x.ApiEquivalentCostUsd.HasValue)
+                ? lines.Sum(x => x.ApiEquivalentCostUsd!.Value)
+                : null,
+            MergeOptionalLabels(lines.Select(x => x.ApiEquivalentPricingProvider)),
+            MergeOptionalLabels(lines.Select(x => x.CostStatus)),
+            MergeOptionalLabels(lines.Select(x => x.CostSource)));
+    }
+
+    private static string MergeLabels(IEnumerable<string> values, bool includeUnattributed)
+    {
+        var labels = values
+            .SelectMany(x => SplitLabels(
+                string.IsNullOrWhiteSpace(x) ? (includeUnattributed ? "unattributed" : null) : x))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x.Equals("unattributed", StringComparison.OrdinalIgnoreCase))
+            .ThenBy(x => x, StringComparer.OrdinalIgnoreCase);
+        return string.Join(", ", labels);
+    }
+
+    private static string? MergeOptionalLabels(IEnumerable<string?> values)
+    {
+        var merged = string.Join(", ", values
+            .SelectMany(SplitLabels)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase));
+        return merged.Length == 0 ? null : merged;
+    }
+
+    private static IEnumerable<string> SplitLabels(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? []
+            : value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
     private async Task<ProfileResult> QueryProfileAsync(
         ProfileDatabase profile,
@@ -101,13 +307,22 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
 
         if (!await HasTableAsync(connection, "sessions", cancellationToken) ||
             !await HasTableAsync(connection, "session_model_usage", cancellationToken))
-            return new ProfileResult(0, []);
+            return new ProfileResult(0, [], new Dictionary<string, string?>());
 
-        var totalCommand = connection.CreateCommand();
-        totalCommand.CommandText = "SELECT COUNT(*) FROM sessions";
-        var totalSessions = Convert.ToInt32(await totalCommand.ExecuteScalarAsync(cancellationToken));
+        await using var transaction = connection.BeginTransaction(deferred: true);
+        var parentIndex = new Dictionary<string, string?>(StringComparer.Ordinal);
+        var parentCommand = connection.CreateCommand();
+        parentCommand.Transaction = transaction;
+        parentCommand.CommandText = "SELECT id, parent_session_id FROM sessions";
+        await using (var parentReader = await parentCommand.ExecuteReaderAsync(cancellationToken))
+        {
+            while (await parentReader.ReadAsync(cancellationToken))
+                parentIndex[parentReader.GetString(0)] = parentReader.IsDBNull(1) ? null : parentReader.GetString(1);
+        }
+        var totalSessions = parentIndex.Count;
 
         var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = """
             WITH matching_sessions AS (
                 SELECT s.id, s.source, s.model, s.parent_session_id, s.started_at, s.ended_at,
@@ -198,7 +413,8 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
             }
         }
 
-        return new ProfileResult(totalSessions, builders.Values.Select(x => x.Build()).ToArray());
+        await transaction.CommitAsync(cancellationToken);
+        return new ProfileResult(totalSessions, builders.Values.Select(x => x.Build()).ToArray(), parentIndex);
     }
 
     private static async Task<bool> HasTableAsync(SqliteConnection connection, string table, CancellationToken cancellationToken)
@@ -220,7 +436,10 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
 
     private static string NormalizeTask(string task) => string.IsNullOrWhiteSpace(task) ? "agent" : task;
 
-    private sealed record ProfileResult(int TotalSessions, IReadOnlyList<SessionMetrics> Sessions);
+    private sealed record ProfileResult(
+        int TotalSessions,
+        IReadOnlyList<SessionMetrics> Sessions,
+        IReadOnlyDictionary<string, string?> ParentIndex);
 
     private sealed class SessionBuilder(
         string profile,
@@ -240,7 +459,10 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
 
         public SessionMetrics Build()
         {
-            var lines = Usage.OrderByDescending(x => x.AccountedTokens).ThenBy(x => x.Model).ToArray();
+            var lines = MergeUsageLines(Usage);
+            var residualCalls = Math.Max(0, sessionApiCalls - lines.Sum(x => x.ApiCalls));
+            if (residualCalls > 0)
+                lines = MergeUsageLines(lines.Append(SessionTotalsUsageLine(residualCalls)));
             var status = endedAt is null ? "active" : string.IsNullOrWhiteSpace(endReason) ? "completed" : endReason;
             return new SessionMetrics(
                 profile, id, source, title, primaryModel, parentSessionId,
@@ -248,7 +470,7 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
                 status, messageCount, toolCallCount,
                 lines.Sum(x => x.AccountedTokens),
                 lines.Sum(x => x.ReasoningTokens),
-                lines.Length == 0 ? sessionApiCalls : lines.Sum(x => x.ApiCalls),
+                lines.Count == 0 ? sessionApiCalls : lines.Sum(x => x.ApiCalls),
                 lines.Sum(x => x.EstimatedCostUsd),
                 lines.Sum(x => x.ActualCostUsd),
                 lines.Where(x => x.ApiEquivalentCostUsd.HasValue).Sum(x => x.ApiEquivalentCostUsd!.Value),
@@ -256,5 +478,19 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
                 lines.Where(x => !x.ApiEquivalentCostUsd.HasValue).Sum(x => x.AccountedTokens),
                 lines);
         }
+    }
+
+    private sealed class ModelTaskComparer : IEqualityComparer<(string Model, string Task)>
+    {
+        public static ModelTaskComparer Instance { get; } = new();
+
+        public bool Equals((string Model, string Task) x, (string Model, string Task) y) =>
+            StringComparer.OrdinalIgnoreCase.Equals(x.Model, y.Model) &&
+            StringComparer.OrdinalIgnoreCase.Equals(x.Task, y.Task);
+
+        public int GetHashCode((string Model, string Task) value) =>
+            HashCode.Combine(
+                StringComparer.OrdinalIgnoreCase.GetHashCode(value.Model),
+                StringComparer.OrdinalIgnoreCase.GetHashCode(value.Task));
     }
 }

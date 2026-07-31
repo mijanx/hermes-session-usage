@@ -57,7 +57,8 @@ public sealed class MetricsQueryServiceTests : IDisposable
             new MetricsQuery(24, null, 100, 0),
             CancellationToken.None);
 
-        var session = Assert.Single(result.Sessions);
+        var family = Assert.Single(result.Families);
+        var session = Assert.Single(family.Sessions);
         Assert.Equal("dev", session.Profile);
         Assert.Equal("recent", session.Id);
         Assert.True(session.IsChild);
@@ -71,8 +72,42 @@ public sealed class MetricsQueryServiceTests : IDisposable
         Assert.Equal(0.0014, session.ApiEquivalentCostUsd, 9);
         Assert.Equal(1_310, result.ApiEquivalentPricedTokens);
         Assert.Equal(0, result.ApiEquivalentUnpricedTokens);
+        Assert.Equal(2, result.SchemaVersion);
         Assert.Equal(2, result.TotalSessions);
         Assert.Equal(1, result.FilteredSessions);
+    }
+
+    [Fact]
+    public async Task Query_merges_same_model_and_task_across_provider_attribution()
+    {
+        await SeedAsync();
+        await using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            await connection.OpenAsync();
+            await InsertUsage(connection, "recent", "deepseek-v4-pro", "", "", "compression", 10, 5, 1, 2, 3, 4, 0.02);
+        }
+        var pricing = ApiPricingCatalog.FromEntries([
+            new ApiPriceEntry("deepseek-v4-pro", "deepseek", 1m, 0.1m, 1m, 2m)
+        ]);
+        var service = new MetricsQueryService(pricing, () => Now);
+
+        var result = await service.QueryAsync(
+            [new ProfileDatabase("dev", _dbPath)],
+            new MetricsQuery(24, null, 100, 0),
+            CancellationToken.None);
+
+        var family = Assert.Single(result.Families);
+        var session = Assert.Single(family.Sessions);
+        var compression = Assert.Single(session.UsageLines, x => x.Task == "compression");
+        Assert.Equal("deepseek, unattributed", compression.Provider);
+        Assert.Equal(6, compression.ApiCalls);
+        Assert.Equal(210, compression.InputTokens);
+        Assert.Equal(205, compression.CacheReadTokens);
+        Assert.Equal(1, compression.CacheWriteTokens);
+        Assert.Equal(42, compression.OutputTokens);
+        Assert.Equal(23, compression.ReasoningTokens);
+        Assert.Equal(458, compression.AccountedTokens);
+        Assert.Equal(0.10, compression.EstimatedCostUsd, 9);
     }
 
     [Fact]
@@ -86,9 +121,109 @@ public sealed class MetricsQueryServiceTests : IDisposable
             new MetricsQuery(24, "needle", 1, 0),
             CancellationToken.None);
 
-        var session = Assert.Single(result.Sessions);
+        var family = Assert.Single(result.Families);
+        var session = Assert.Single(family.Sessions);
         Assert.Equal("recent", session.Id);
         Assert.Equal(1, result.FilteredSessions);
+    }
+
+    [Fact]
+    public async Task Query_groups_children_with_parent_before_sorting_and_pagination()
+    {
+        await SeedAsync();
+        await using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            await connection.OpenAsync();
+            await InsertSession(connection, "parent-session", "parent session", Now.AddHours(-3).ToUnixTimeSeconds());
+            await InsertUsage(connection, "parent-session", "gpt-5.6-sol", "openai-codex", "subscription_included", "", 20, 0, 0, 5, 0, 1, 0);
+            await InsertSession(connection, "sibling-child", "sibling child", Now.AddHours(-1).ToUnixTimeSeconds(), "parent-session");
+            await InsertUsage(connection, "sibling-child", "grok-4.5", "", "", "approval", 10, 0, 0, 2, 0, 1, 0);
+            await InsertUsage(connection, "sibling-child", "grok-4.5", "xai-oauth", "", "approval", 5, 0, 0, 0, 0, 1, 0);
+            await InsertSession(connection, "calls-only-child", "calls only child", Now.AddMinutes(-45).ToUnixTimeSeconds(), "parent-session");
+            await InsertUsage(connection, "calls-only-child", "gpt-5.6-sol", "openai-codex", "subscription_included", "", 0, 0, 0, 0, 0, 1, 0);
+            var callsOnly = connection.CreateCommand();
+            callsOnly.CommandText = "UPDATE sessions SET api_call_count=3 WHERE id='calls-only-child'";
+            await callsOnly.ExecuteNonQueryAsync();
+            await InsertSession(connection, "standalone", "standalone", Now.AddMinutes(-30).ToUnixTimeSeconds());
+            await InsertUsage(connection, "standalone", "gpt-5.6-sol", "openai-codex", "subscription_included", "", 1_000, 0, 0, 200, 0, 1, 0);
+        }
+        var service = new MetricsQueryService(ApiPricingCatalog.Empty, () => Now);
+
+        var result = await service.QueryAsync(
+            [new ProfileDatabase("dev", _dbPath)],
+            new MetricsQuery(24, null, 1, 0),
+            CancellationToken.None);
+
+        Assert.Equal(5, result.FilteredSessions);
+        Assert.Equal(2, result.FilteredFamilies);
+        var family = Assert.Single(result.Families);
+        Assert.Equal("parent-session", family.RootSessionId);
+        Assert.True(family.RootIncluded);
+        Assert.Equal(["parent-session", "recent", "sibling-child", "calls-only-child"], family.Sessions.Select(x => x.Id));
+        Assert.Equal(1_352, family.AccountedTokens);
+        Assert.Equal(10, family.ApiCalls);
+        var familyAgent = Assert.Single(family.UsageLines, x => x.Model == "gpt-5.6-sol" && x.Task == "agent");
+        Assert.Equal(120, familyAgent.InputTokens);
+        var familyApproval = Assert.Single(family.UsageLines, x => x.Model == "grok-4.5" && x.Task == "approval");
+        Assert.Equal(115, familyApproval.InputTokens);
+        Assert.Equal("xai-oauth, unattributed", familyApproval.Provider);
+        var residual = Assert.Single(family.UsageLines, x => x.Model == "session totals");
+        Assert.Equal(2, residual.ApiCalls);
+        Assert.Equal(family.ApiCalls, family.UsageLines.Sum(x => x.ApiCalls));
+    }
+
+    [Fact]
+    public async Task Query_groups_orphans_cycles_and_deep_descendants_deterministically()
+    {
+        await SeedAsync();
+        await using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            await connection.OpenAsync();
+            await InsertSession(connection, "orphan-a", "graph orphan a", Now.AddHours(-10).ToUnixTimeSeconds(), "missing-root");
+            await InsertSession(connection, "orphan-b", "graph orphan b", Now.AddHours(-9).ToUnixTimeSeconds(), "missing-root");
+            await InsertSession(connection, "cycle-a", "graph cycle a", Now.AddHours(-8).ToUnixTimeSeconds(), "cycle-b");
+            await InsertSession(connection, "cycle-b", "graph cycle b", Now.AddHours(-7).ToUnixTimeSeconds(), "cycle-a");
+            await InsertSession(connection, "deep-root", "graph deep root", Now.AddHours(-6).ToUnixTimeSeconds());
+            await InsertSession(connection, "deep-child", "graph deep child", Now.AddHours(-5).ToUnixTimeSeconds(), "deep-root");
+            await InsertSession(connection, "deep-grandchild", "graph deep grandchild", Now.AddHours(-4).ToUnixTimeSeconds(), "deep-child");
+        }
+
+        var service = new MetricsQueryService(ApiPricingCatalog.Empty, () => Now);
+        var result = await service.QueryAsync(
+            [new ProfileDatabase("dev", _dbPath)],
+            new MetricsQuery(24, "graph", 100, 0),
+            CancellationToken.None);
+
+        Assert.Equal(3, result.FilteredFamilies);
+        var families = result.Families.ToDictionary(x => x.RootSessionId);
+        Assert.False(families["missing-root"].RootIncluded);
+        Assert.Equal(["orphan-a", "orphan-b"], families["missing-root"].Sessions.Select(x => x.Id));
+        Assert.True(families["cycle-a"].RootIncluded);
+        Assert.Equal(["cycle-a", "cycle-b"], families["cycle-a"].Sessions.Select(x => x.Id));
+        Assert.Equal(["deep-root", "deep-child", "deep-grandchild"], families["deep-root"].Sessions.Select(x => x.Id));
+    }
+
+    [Fact]
+    public async Task Query_groups_across_a_filtered_intermediate_parent()
+    {
+        await SeedAsync();
+        await using (var connection = new SqliteConnection($"Data Source={_dbPath}"))
+        {
+            await connection.OpenAsync();
+            await InsertSession(connection, "graph-root", "graph root", Now.AddHours(-6).ToUnixTimeSeconds());
+            await InsertSession(connection, "bridge", "does not match", Now.AddHours(-5).ToUnixTimeSeconds(), "graph-root");
+            await InsertSession(connection, "graph-leaf", "graph leaf", Now.AddHours(-4).ToUnixTimeSeconds(), "bridge");
+        }
+
+        var service = new MetricsQueryService(ApiPricingCatalog.Empty, () => Now);
+        var result = await service.QueryAsync(
+            [new ProfileDatabase("dev", _dbPath)],
+            new MetricsQuery(24, "graph", 100, 0),
+            CancellationToken.None);
+
+        var family = Assert.Single(result.Families);
+        Assert.Equal("graph-root", family.RootSessionId);
+        Assert.Equal(["graph-root", "graph-leaf"], family.Sessions.Select(x => x.Id));
     }
 
     [Fact]
@@ -113,7 +248,7 @@ public sealed class MetricsQueryServiceTests : IDisposable
             new MetricsQuery(24, null, 100, 0, "cost", true, "api-equivalent"),
             CancellationToken.None);
 
-        Assert.Equal(["old", "recent"], result.Sessions.Select(x => x.Id));
+        Assert.Equal(["old", "parent-session"], result.Families.Select(x => x.RootSessionId));
     }
 
     private async Task SeedAsync()

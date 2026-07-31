@@ -53,13 +53,31 @@ public sealed record SessionMetrics(
     long ApiEquivalentUnpricedTokens,
     IReadOnlyList<UsageLine> UsageLines);
 
+public sealed record SessionFamilyMetrics(
+    string Profile,
+    string RootSessionId,
+    bool RootIncluded,
+    DateTimeOffset StartedAt,
+    long AccountedTokens,
+    long ReasoningTokens,
+    long ApiCalls,
+    double EstimatedCostUsd,
+    double ActualCostUsd,
+    double ApiEquivalentCostUsd,
+    long ApiEquivalentPricedTokens,
+    long ApiEquivalentUnpricedTokens,
+    IReadOnlyList<SessionMetrics> Sessions,
+    IReadOnlyList<UsageLine> UsageLines);
+
 public sealed record MetricsResult(
+    int SchemaVersion,
     DateTimeOffset GeneratedAt,
     DateTimeOffset Cutoff,
     int Hours,
     IReadOnlyList<string> Profiles,
     int TotalSessions,
     int FilteredSessions,
+    int FilteredFamilies,
     long AccountedTokens,
     long ReasoningTokens,
     long ApiCalls,
@@ -69,5 +87,5 @@ public sealed record MetricsResult(
     long ApiEquivalentPricedTokens,
     long ApiEquivalentUnpricedTokens,
     ApiPricingSource? ApiPricingSource,
-    IReadOnlyList<SessionMetrics> Sessions,
+    IReadOnlyList<SessionFamilyMetrics> Families,
     long QueryElapsedMilliseconds);
