@@ -126,6 +126,28 @@ function taskBadge(task) {
   return `<span class="task-badge ${auxiliary ? "aux" : ""}">${escapeHtml(task)}</span>`;
 }
 
+async function copyText(value) {
+  if (window.isSecureContext && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value);
+      return;
+    } catch {
+      // Clipboard permissions can still be denied on localhost; use the LAN-compatible fallback.
+    }
+  }
+
+  const input = document.createElement("textarea");
+  input.value = value;
+  input.setAttribute("readonly", "");
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.appendChild(input);
+  input.select();
+  const copied = document.execCommand("copy");
+  input.remove();
+  if (!copied) throw new Error("Clipboard copy was rejected");
+}
+
 function familyMemberDepth(session, family) {
   if (family.rootIncluded && session.id === family.rootSessionId) return 0;
   const byId = new Map(family.sessions.map(member => [member.id, member]));
@@ -170,24 +192,25 @@ function renderSessionRows(families) {
           ? `<span class="family-badge">FAMILY · ${number.format(familySize)}</span>`
           : "";
         const childBadge = !isRoot
-          ? `<span class="child-badge" title="Parent: ${escapeHtml(session.parentSessionId || family.rootSessionId)}">CHILD</span>`
+          ? `<span class="child-badge">CHILD</span>`
           : "";
-        const parentReference = !family.rootIncluded && isFirstMember
-          ? `<br>parent outside result: ${escapeHtml(family.rootSessionId)}`
-          : (session.isChild ? `<br>parent: ${escapeHtml(session.parentSessionId)}` : "");
         const familyTotal = isFirstMember && familySize > 1
-          ? `<strong>${number.format(family.accountedTokens)}</strong><div class="provider">family total · ${number.format(session.accountedTokens)} this process · ${number.format(family.apiCalls)} calls</div>`
-          : `<strong>${number.format(session.accountedTokens)}</strong><div class="provider">${number.format(session.apiCalls)} calls</div>`;
+          ? `<strong>${number.format(family.accountedTokens)}</strong><span class="token-context"> (${number.format(session.accountedTokens)} this process · ${number.format(family.apiCalls)} calls)</span>`
+          : `<strong>${number.format(session.accountedTokens)}</strong><span class="token-context"> (${number.format(session.apiCalls)} calls)</span>`;
+        const childCount = familySize - 1;
         const familyToggle = isFirstMember && familySize > 1
-          ? `<button type="button" class="family-toggle" data-family-key="${escapeHtml(familyKey)}" aria-expanded="${expanded}">${expanded ? "Hide" : "Show"} ${number.format(familySize - 1)} child process${familySize === 2 ? "" : "es"}</button>`
+          ? `<button type="button" class="family-toggle" data-family-key="${escapeHtml(familyKey)}" aria-expanded="${expanded}">${expanded ? "Hide children" : `+${number.format(childCount)} child${childCount === 1 ? "" : "ren"}`}</button>`
+          : "";
+        const sessionTitle = `<div class="session-title">`;
+        const sessionName = !isRoot && session.title === session.id ? "Child process" : session.title;
+        const sessionIdAction = isRoot
+          ? `<button type="button" class="session-id-copy" data-session-id="${escapeHtml(session.id)}" title="Copy session ID: ${escapeHtml(session.id)}" aria-label="Copy session ID ${escapeHtml(session.id)}" aria-live="polite">ID</button>`
           : "";
         const sessionCells = firstLine ? `
           <td rowspan="${rowSpan}" class="session-cell ${!isRoot ? "child-session" : ""}" style="--family-depth:${memberDepth}">
-            <div class="session-title">${familyBadge}<span class="profile-badge">${escapeHtml(session.profile)}</span>${childBadge}${!isRoot ? `<span class="branch">↳</span>` : ""}${escapeHtml(session.title)}</div>
-            <div class="session-id">${escapeHtml(session.id)}${parentReference}</div>
-            ${familyToggle}
+            ${sessionTitle}${familyBadge}<span class="profile-badge">${escapeHtml(session.profile)}</span>${childBadge}${!isRoot ? `<span class="branch">↳</span>` : ""}<span class="session-name">${escapeHtml(sessionName)}</span>${sessionIdAction}${familyToggle}</div>
           </td>
-          <td rowspan="${rowSpan}">${dateTime.format(new Date(session.startedAt))}<div class="provider">${escapeHtml(session.source)}</div></td>
+          <td rowspan="${rowSpan}">${dateTime.format(new Date(session.startedAt))}<span class="started-context"> (${escapeHtml(session.source)})</span></td>
           <td rowspan="${rowSpan}"><span class="status-badge ${session.status === "active" ? "" : "closed"}">${escapeHtml(session.status)}</span></td>
           <td rowspan="${rowSpan}" class="number">${familyTotal}</td>` : "";
         const cache = (line.cacheReadTokens || 0) + (line.cacheWriteTokens || 0);
@@ -202,7 +225,7 @@ function renderSessionRows(families) {
         rows.push(`<tr class="${rowClasses}">
           ${sessionCells}
           <td>${taskBadge(line.task)}</td>
-          <td><div class="model">${escapeHtml(line.model)}</div><div class="provider">${escapeHtml(line.provider || "unattributed")}${line.billingMode ? ` · ${escapeHtml(line.billingMode)}` : ""}</div></td>
+          <td><span class="model detail-tooltip" tabindex="0" data-tooltip="Provider: ${escapeHtml(line.provider || "unattributed")}${line.billingMode ? ` · ${escapeHtml(line.billingMode)}` : ""}" aria-label="${escapeHtml(line.model)}. Provider: ${escapeHtml(line.provider || "unattributed")}${line.billingMode ? `, ${escapeHtml(line.billingMode)}` : ""}">${escapeHtml(line.model)}</span></td>
           <td class="number">${number.format(line.apiCalls || 0)}</td>
           <td class="number">${number.format(line.inputTokens || 0)}</td>
           <td class="number">${number.format(cache)}</td>
@@ -220,6 +243,24 @@ function renderSessionRows(families) {
     if (state.expandedFamilies.has(key)) state.expandedFamilies.delete(key);
     else state.expandedFamilies.add(key);
     renderSessionRows(families);
+  }));
+  $("sessionRows").querySelectorAll("[data-session-id]").forEach(button => button.addEventListener("click", async () => {
+    if (button.getAttribute("aria-disabled") === "true") return;
+    button.setAttribute("aria-disabled", "true");
+    const sessionId = button.dataset.sessionId;
+    try {
+      await copyText(sessionId);
+      button.textContent = "Copied";
+      button.setAttribute("aria-label", `Copied session ID ${sessionId}`);
+    } catch {
+      button.textContent = "Failed";
+      button.setAttribute("aria-label", `Could not copy session ID ${sessionId}`);
+    }
+    window.setTimeout(() => {
+      button.textContent = "ID";
+      button.setAttribute("aria-label", `Copy session ID ${sessionId}`);
+      button.removeAttribute("aria-disabled");
+    }, 1_200);
   }));
 }
 
