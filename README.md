@@ -37,14 +37,23 @@ Configuration can be supplied through normal ASP.NET Core configuration:
 
 ## API-equivalent pricing
 
-The checked-in `HermesSessionMetrics.Web/data/api-pricing.json` file is a local snapshot of direct-provider token rates from [models.dev](https://models.dev/). Refresh it explicitly:
+The checked-in `HermesSessionMetrics.Web/data/api-pricing.json` file combines audited rates from official provider documentation with [models.dev](https://models.dev/) as a fallback for models that do not have an official override. The normalized official entries live in `HermesSessionMetrics.Web/data/official-provider-pricing.json`.
+
+| Provider | Official pricing source | Basis used |
+|---|---|---|
+| OpenAI | [API pricing](https://developers.openai.com/api/docs/pricing.md) | Standard, short-context text-token rates |
+| xAI | [API pricing](https://docs.x.ai/developers/pricing.md) | Standard, short-context rates below 200k prompt tokens |
+| Kimi | [K2.5](https://platform.kimi.ai/docs/pricing/chat-k25.md), [K2.6](https://platform.kimi.ai/docs/pricing/chat-k26.md), [K2.7 Code](https://platform.kimi.ai/docs/pricing/chat-k27-code.md), and [K3](https://platform.kimi.ai/docs/pricing/chat-k3.md) | Cache-hit, cache-miss, and output rates |
+| MiniMax | [Pay-as-you-go](https://platform.minimax.io/docs/guides/pricing-paygo.md) and [prompt caching](https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache.md) | Standard rates; M3 uses the ≤512k tier |
+
+Refresh the models.dev fallback and rebuild the merged snapshot explicitly:
 
 ```bash
 python3 scripts/refresh-pricing.py
 git diff -- HermesSessionMetrics.Web/data/api-pricing.json
 ```
 
-The refresh script retains non-zero direct API prices from OpenAI, xAI, DeepSeek, Anthropic, Google, Mistral, MiniMax, Zhipu AI, Moonshot AI, and Alibaba. The dashboard matches model IDs case-insensitively and calculates:
+The refresh script applies the official OpenAI, xAI, Kimi, and MiniMax entries after importing non-zero direct API prices from models.dev for OpenAI, xAI, DeepSeek, Anthropic, Google, Mistral, MiniMax, Zhipu AI, Moonshot AI, and Alibaba. Official entries therefore win on model-ID collisions. The script deliberately does not scrape vendor documentation: recheck the linked pages and update `official-provider-pricing.json` when refreshing those audited rates. The dashboard matches model IDs case-insensitively and calculates:
 
 ```text
 (input × input rate
@@ -57,9 +66,10 @@ Important limitations:
 
 - This is a **counterfactual list-price estimate**, not an invoice or subscription allocation.
 - Models without a direct price match display `—` and are excluded from the equivalent-cost total. The UI reports token coverage.
-- Base rates are used. Context-length tiers cannot be reconstructed because per-request context sizes are not stored in the aggregate table.
+- Standard base rates are used. OpenAI, xAI, and MiniMax context-length uplifts cannot be reconstructed because per-request context sizes are not stored in the aggregate table.
+- If an official page publishes cache-read pricing but no separate cache-write price, cache writes use the ordinary input/cache-miss rate rather than inventing a discount.
 - Reasoning tokens are displayed separately and are not added again; providers commonly include them in output accounting.
-- Pricing changes over time. The snapshot source and retrieval timestamp are exposed by `GET /api/pricing` and in metrics responses.
+- Pricing changes over time. `GET /api/pricing` exposes every official source URL, pricing basis, and retrieval timestamp plus the models.dev fallback provenance.
 
 ## Test and verify
 

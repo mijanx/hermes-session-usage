@@ -1,0 +1,438 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-07-31T09:18:47Z",
+  "sources": [
+    {
+      "name": "OpenAI API pricing",
+      "url": "https://developers.openai.com/api/docs/pricing.md",
+      "provider": "openai",
+      "basis": "standard short-context text-token rates"
+    },
+    {
+      "name": "OpenAI GPT-5.6 model guide",
+      "url": "https://developers.openai.com/api/docs/guides/latest-model",
+      "provider": "openai",
+      "basis": "gpt-5.6 alias routes to gpt-5.6-sol"
+    },
+    {
+      "name": "xAI API pricing",
+      "url": "https://docs.x.ai/developers/pricing.md",
+      "provider": "xai",
+      "basis": "standard short-context text-token rates (<200k prompt tokens)"
+    },
+    {
+      "name": "Kimi K2.5 pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat-k25.md",
+      "provider": "moonshotai",
+      "basis": "cache-hit, cache-miss, and output rates"
+    },
+    {
+      "name": "Kimi K2.6 pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat-k26.md",
+      "provider": "moonshotai",
+      "basis": "cache-hit, cache-miss, and output rates"
+    },
+    {
+      "name": "Kimi K2.7 Code pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat-k27-code.md",
+      "provider": "moonshotai",
+      "basis": "cache-hit, cache-miss, and output rates"
+    },
+    {
+      "name": "Kimi K3 pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat-k3.md",
+      "provider": "moonshotai",
+      "basis": "cache-hit, cache-miss, and output rates"
+    },
+    {
+      "name": "MiniMax pay-as-you-go pricing",
+      "url": "https://platform.minimax.io/docs/guides/pricing-paygo.md",
+      "provider": "minimax",
+      "basis": "standard rates; MiniMax-M3 <=512k input tokens"
+    },
+    {
+      "name": "MiniMax explicit prompt-caching pricing",
+      "url": "https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache.md",
+      "provider": "minimax",
+      "basis": "cache-read and cache-write rates for M2-family models"
+    }
+  ],
+  "models": [
+    {
+      "model": "gpt-5.6",
+      "provider": "openai",
+      "inputPerMillion": 5,
+      "cacheReadPerMillion": 0.5,
+      "cacheWritePerMillion": 6.25,
+      "outputPerMillion": 30
+    },
+    {
+      "model": "gpt-5.6-sol",
+      "provider": "openai",
+      "inputPerMillion": 5,
+      "cacheReadPerMillion": 0.5,
+      "cacheWritePerMillion": 6.25,
+      "outputPerMillion": 30
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "provider": "openai",
+      "inputPerMillion": 2,
+      "cacheReadPerMillion": 0.2,
+      "cacheWritePerMillion": 2.5,
+      "outputPerMillion": 12
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "provider": "openai",
+      "inputPerMillion": 0.2,
+      "cacheReadPerMillion": 0.02,
+      "cacheWritePerMillion": 0.25,
+      "outputPerMillion": 1.2
+    },
+    {
+      "model": "gpt-5.5",
+      "provider": "openai",
+      "inputPerMillion": 5,
+      "cacheReadPerMillion": 0.5,
+      "cacheWritePerMillion": 5,
+      "outputPerMillion": 30
+    },
+    {
+      "model": "gpt-5.5-pro",
+      "provider": "openai",
+      "inputPerMillion": 30,
+      "cacheReadPerMillion": 30,
+      "cacheWritePerMillion": 30,
+      "outputPerMillion": 180
+    },
+    {
+      "model": "gpt-5.4",
+      "provider": "openai",
+      "inputPerMillion": 2.5,
+      "cacheReadPerMillion": 0.25,
+      "cacheWritePerMillion": 2.5,
+      "outputPerMillion": 15
+    },
+    {
+      "model": "gpt-5.4-mini",
+      "provider": "openai",
+      "inputPerMillion": 0.75,
+      "cacheReadPerMillion": 0.075,
+      "cacheWritePerMillion": 0.75,
+      "outputPerMillion": 4.5
+    },
+    {
+      "model": "gpt-5.4-nano",
+      "provider": "openai",
+      "inputPerMillion": 0.2,
+      "cacheReadPerMillion": 0.02,
+      "cacheWritePerMillion": 0.2,
+      "outputPerMillion": 1.25
+    },
+    {
+      "model": "gpt-5.4-pro",
+      "provider": "openai",
+      "inputPerMillion": 30,
+      "cacheReadPerMillion": 30,
+      "cacheWritePerMillion": 30,
+      "outputPerMillion": 180
+    },
+    {
+      "model": "gpt-5.3-chat-latest",
+      "provider": "openai",
+      "inputPerMillion": 1.75,
+      "cacheReadPerMillion": 0.175,
+      "cacheWritePerMillion": 1.75,
+      "outputPerMillion": 14
+    },
+    {
+      "model": "gpt-5.3-codex",
+      "provider": "openai",
+      "inputPerMillion": 1.75,
+      "cacheReadPerMillion": 0.175,
+      "cacheWritePerMillion": 1.75,
+      "outputPerMillion": 14
+    },
+    {
+      "model": "gpt-5.2",
+      "provider": "openai",
+      "inputPerMillion": 1.75,
+      "cacheReadPerMillion": 0.175,
+      "cacheWritePerMillion": 1.75,
+      "outputPerMillion": 14
+    },
+    {
+      "model": "gpt-5.2-chat-latest",
+      "provider": "openai",
+      "inputPerMillion": 1.75,
+      "cacheReadPerMillion": 0.175,
+      "cacheWritePerMillion": 1.75,
+      "outputPerMillion": 14
+    },
+    {
+      "model": "gpt-5.2-pro",
+      "provider": "openai",
+      "inputPerMillion": 21,
+      "cacheReadPerMillion": 21,
+      "cacheWritePerMillion": 21,
+      "outputPerMillion": 168
+    },
+    {
+      "model": "gpt-5.1",
+      "provider": "openai",
+      "inputPerMillion": 1.25,
+      "cacheReadPerMillion": 0.125,
+      "cacheWritePerMillion": 1.25,
+      "outputPerMillion": 10
+    },
+    {
+      "model": "gpt-5",
+      "provider": "openai",
+      "inputPerMillion": 1.25,
+      "cacheReadPerMillion": 0.125,
+      "cacheWritePerMillion": 1.25,
+      "outputPerMillion": 10
+    },
+    {
+      "model": "gpt-5-mini",
+      "provider": "openai",
+      "inputPerMillion": 0.25,
+      "cacheReadPerMillion": 0.025,
+      "cacheWritePerMillion": 0.25,
+      "outputPerMillion": 2
+    },
+    {
+      "model": "gpt-5-nano",
+      "provider": "openai",
+      "inputPerMillion": 0.05,
+      "cacheReadPerMillion": 0.005,
+      "cacheWritePerMillion": 0.05,
+      "outputPerMillion": 0.4
+    },
+    {
+      "model": "gpt-5-pro",
+      "provider": "openai",
+      "inputPerMillion": 15,
+      "cacheReadPerMillion": 15,
+      "cacheWritePerMillion": 15,
+      "outputPerMillion": 120
+    },
+    {
+      "model": "gpt-4.1",
+      "provider": "openai",
+      "inputPerMillion": 2,
+      "cacheReadPerMillion": 0.5,
+      "cacheWritePerMillion": 2,
+      "outputPerMillion": 8
+    },
+    {
+      "model": "gpt-4.1-mini",
+      "provider": "openai",
+      "inputPerMillion": 0.4,
+      "cacheReadPerMillion": 0.1,
+      "cacheWritePerMillion": 0.4,
+      "outputPerMillion": 1.6
+    },
+    {
+      "model": "gpt-4.1-nano",
+      "provider": "openai",
+      "inputPerMillion": 0.1,
+      "cacheReadPerMillion": 0.025,
+      "cacheWritePerMillion": 0.1,
+      "outputPerMillion": 0.4
+    },
+    {
+      "model": "gpt-4o",
+      "provider": "openai",
+      "inputPerMillion": 2.5,
+      "cacheReadPerMillion": 1.25,
+      "cacheWritePerMillion": 2.5,
+      "outputPerMillion": 10
+    },
+    {
+      "model": "gpt-4o-2024-05-13",
+      "provider": "openai",
+      "inputPerMillion": 5,
+      "cacheReadPerMillion": 5,
+      "cacheWritePerMillion": 5,
+      "outputPerMillion": 15
+    },
+    {
+      "model": "gpt-4o-mini",
+      "provider": "openai",
+      "inputPerMillion": 0.15,
+      "cacheReadPerMillion": 0.075,
+      "cacheWritePerMillion": 0.15,
+      "outputPerMillion": 0.6
+    },
+    {
+      "model": "gpt-3.5-turbo",
+      "provider": "openai",
+      "inputPerMillion": 0.5,
+      "cacheReadPerMillion": 0.5,
+      "cacheWritePerMillion": 0.5,
+      "outputPerMillion": 1.5
+    },
+    {
+      "model": "grok-4.5",
+      "provider": "xai",
+      "inputPerMillion": 2,
+      "cacheReadPerMillion": 0.3,
+      "cacheWritePerMillion": 2,
+      "outputPerMillion": 6
+    },
+    {
+      "model": "grok-build-0.1",
+      "provider": "xai",
+      "inputPerMillion": 1,
+      "cacheReadPerMillion": 0.2,
+      "cacheWritePerMillion": 1,
+      "outputPerMillion": 2
+    },
+    {
+      "model": "grok-4.3",
+      "provider": "xai",
+      "inputPerMillion": 1.25,
+      "cacheReadPerMillion": 0.2,
+      "cacheWritePerMillion": 1.25,
+      "outputPerMillion": 2.5
+    },
+    {
+      "model": "grok-4.20-multi-agent-0309",
+      "provider": "xai",
+      "inputPerMillion": 1.25,
+      "cacheReadPerMillion": 0.2,
+      "cacheWritePerMillion": 1.25,
+      "outputPerMillion": 2.5
+    },
+    {
+      "model": "grok-4.20-0309-reasoning",
+      "provider": "xai",
+      "inputPerMillion": 1.25,
+      "cacheReadPerMillion": 0.2,
+      "cacheWritePerMillion": 1.25,
+      "outputPerMillion": 2.5
+    },
+    {
+      "model": "grok-4.20-0309-non-reasoning",
+      "provider": "xai",
+      "inputPerMillion": 1.25,
+      "cacheReadPerMillion": 0.2,
+      "cacheWritePerMillion": 1.25,
+      "outputPerMillion": 2.5
+    },
+    {
+      "model": "kimi-k2.5",
+      "provider": "moonshotai",
+      "inputPerMillion": 0.6,
+      "cacheReadPerMillion": 0.1,
+      "cacheWritePerMillion": 0.6,
+      "outputPerMillion": 3
+    },
+    {
+      "model": "kimi-k2.6",
+      "provider": "moonshotai",
+      "inputPerMillion": 0.95,
+      "cacheReadPerMillion": 0.16,
+      "cacheWritePerMillion": 0.95,
+      "outputPerMillion": 4
+    },
+    {
+      "model": "kimi-k2.7-code",
+      "provider": "moonshotai",
+      "inputPerMillion": 0.95,
+      "cacheReadPerMillion": 0.19,
+      "cacheWritePerMillion": 0.95,
+      "outputPerMillion": 4
+    },
+    {
+      "model": "kimi-k2.7-code-highspeed",
+      "provider": "moonshotai",
+      "inputPerMillion": 1.9,
+      "cacheReadPerMillion": 0.38,
+      "cacheWritePerMillion": 1.9,
+      "outputPerMillion": 8
+    },
+    {
+      "model": "kimi-k3",
+      "provider": "moonshotai",
+      "inputPerMillion": 3,
+      "cacheReadPerMillion": 0.3,
+      "cacheWritePerMillion": 3,
+      "outputPerMillion": 15
+    },
+    {
+      "model": "MiniMax-M3",
+      "provider": "minimax",
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.06,
+      "cacheWritePerMillion": 0.3,
+      "outputPerMillion": 1.2
+    },
+    {
+      "model": "MiniMax-M2.7",
+      "provider": "minimax",
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.06,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 1.2
+    },
+    {
+      "model": "MiniMax-M2.7-highspeed",
+      "provider": "minimax",
+      "inputPerMillion": 0.6,
+      "cacheReadPerMillion": 0.06,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 2.4
+    },
+    {
+      "model": "MiniMax-M2.5",
+      "provider": "minimax",
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 1.2
+    },
+    {
+      "model": "MiniMax-M2.5-highspeed",
+      "provider": "minimax",
+      "inputPerMillion": 0.6,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 2.4
+    },
+    {
+      "model": "MiniMax-M2.1",
+      "provider": "minimax",
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 1.2
+    },
+    {
+      "model": "MiniMax-M2.1-highspeed",
+      "provider": "minimax",
+      "inputPerMillion": 0.6,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 2.4
+    },
+    {
+      "model": "MiniMax-M2",
+      "provider": "minimax",
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 1.2
+    },
+    {
+      "model": "MiniMax-M2-Stable",
+      "provider": "minimax",
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 1.2
+    }
+  ]
+}

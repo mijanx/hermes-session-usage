@@ -217,4 +217,61 @@ public sealed class ApiPricingCatalogTests
     {
         Assert.Null(ApiPricingCatalog.Empty.Estimate("unknown", 1, 2, 3, 4));
     }
+
+    [Fact]
+    public void Load_exposes_all_pricing_sources_for_auditability()
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(path, """
+                {
+                  "schemaVersion": 1,
+                  "source": {
+                    "name": "Official provider pricing with models.dev fallback",
+                    "url": "https://example.test/pricing",
+                    "retrievedAt": "2026-07-31T09:18:47Z"
+                  },
+                  "sources": [
+                    {
+                      "name": "OpenAI API pricing",
+                      "url": "https://developers.openai.com/api/docs/pricing.md",
+                      "retrievedAt": "2026-07-31T09:18:47Z",
+                      "provider": "openai",
+                      "basis": "standard short-context rates"
+                    },
+                    {
+                      "name": "models.dev fallback",
+                      "url": "https://models.dev/api.json",
+                      "retrievedAt": "2026-07-31T09:18:47Z"
+                    }
+                  ],
+                  "models": [
+                    {
+                      "model": "gpt-test",
+                      "provider": "openai",
+                      "inputPerMillion": 1,
+                      "cacheReadPerMillion": 0.1,
+                      "cacheWritePerMillion": 1.25,
+                      "outputPerMillion": 6
+                    }
+                  ]
+                }
+                """);
+
+            var catalog = ApiPricingCatalog.Load(path);
+
+            Assert.Collection(catalog.Sources,
+                source =>
+                {
+                    Assert.Equal("openai", source.Provider);
+                    Assert.Equal("standard short-context rates", source.Basis);
+                },
+                source => Assert.Null(source.Provider));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
 }

@@ -12,33 +12,48 @@ public sealed record ApiPriceEntry(
 
 public readonly record struct ApiPriceEstimate(decimal CostUsd, string Provider);
 
-public sealed record ApiPricingSource(string Name, string Url, DateTimeOffset RetrievedAt);
+public sealed record ApiPricingSource(
+    string Name,
+    string Url,
+    DateTimeOffset RetrievedAt,
+    string? Provider = null,
+    string? Basis = null);
 
 public sealed record ApiPricingDocument(
     int SchemaVersion,
     ApiPricingSource Source,
-    IReadOnlyList<ApiPriceEntry> Models);
+    IReadOnlyList<ApiPriceEntry> Models,
+    IReadOnlyList<ApiPricingSource>? Sources = null);
 
 public sealed class ApiPricingCatalog
 {
     private readonly IReadOnlyDictionary<string, ApiPriceEntry> _entries;
 
-    private ApiPricingCatalog(IReadOnlyDictionary<string, ApiPriceEntry> entries, ApiPricingSource? source)
+    private ApiPricingCatalog(
+        IReadOnlyDictionary<string, ApiPriceEntry> entries,
+        ApiPricingSource? source,
+        IReadOnlyList<ApiPricingSource> sources)
     {
         _entries = entries;
         Source = source;
+        Sources = sources;
     }
 
     public static ApiPricingCatalog Empty { get; } = FromEntries([]);
 
     public ApiPricingSource? Source { get; }
 
+    public IReadOnlyList<ApiPricingSource> Sources { get; }
+
     public int Count => _entries.Count;
 
-    public static ApiPricingCatalog FromEntries(IEnumerable<ApiPriceEntry> entries, ApiPricingSource? source = null)
+    public static ApiPricingCatalog FromEntries(
+        IEnumerable<ApiPriceEntry> entries,
+        ApiPricingSource? source = null,
+        IReadOnlyList<ApiPricingSource>? sources = null)
     {
         var byModel = entries.ToDictionary(x => x.Model, StringComparer.OrdinalIgnoreCase);
-        return new ApiPricingCatalog(byModel, source);
+        return new ApiPricingCatalog(byModel, source, sources ?? []);
     }
 
     public static ApiPricingCatalog Load(string path)
@@ -56,7 +71,7 @@ public sealed class ApiPricingCatalog
                                      x.CacheWritePerMillion < 0 || x.OutputPerMillion < 0))
             throw new InvalidDataException("The API pricing document contains an invalid model entry.");
 
-        return FromEntries(document.Models, document.Source);
+        return FromEntries(document.Models, document.Source, document.Sources);
     }
 
     public ApiPriceEstimate? Estimate(

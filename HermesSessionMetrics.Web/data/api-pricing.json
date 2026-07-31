@@ -1,10 +1,81 @@
 {
   "schemaVersion": 1,
   "source": {
-    "name": "models.dev direct-provider pricing",
+    "name": "Official provider pricing with models.dev fallback",
     "url": "https://models.dev/api.json",
-    "retrievedAt": "2026-07-31T08:24:28Z"
+    "retrievedAt": "2026-07-31T09:23:08Z"
   },
+  "sources": [
+    {
+      "name": "OpenAI API pricing",
+      "url": "https://developers.openai.com/api/docs/pricing.md",
+      "provider": "openai",
+      "basis": "standard short-context text-token rates",
+      "retrievedAt": "2026-07-31T09:18:47Z"
+    },
+    {
+      "name": "OpenAI GPT-5.6 model guide",
+      "url": "https://developers.openai.com/api/docs/guides/latest-model",
+      "provider": "openai",
+      "basis": "gpt-5.6 alias routes to gpt-5.6-sol",
+      "retrievedAt": "2026-07-31T09:18:47Z"
+    },
+    {
+      "name": "xAI API pricing",
+      "url": "https://docs.x.ai/developers/pricing.md",
+      "provider": "xai",
+      "basis": "standard short-context text-token rates (<200k prompt tokens)",
+      "retrievedAt": "2026-07-31T09:18:47Z"
+    },
+    {
+      "name": "Kimi K2.5 pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat-k25.md",
+      "provider": "moonshotai",
+      "basis": "cache-hit, cache-miss, and output rates",
+      "retrievedAt": "2026-07-31T09:18:47Z"
+    },
+    {
+      "name": "Kimi K2.6 pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat-k26.md",
+      "provider": "moonshotai",
+      "basis": "cache-hit, cache-miss, and output rates",
+      "retrievedAt": "2026-07-31T09:18:47Z"
+    },
+    {
+      "name": "Kimi K2.7 Code pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat-k27-code.md",
+      "provider": "moonshotai",
+      "basis": "cache-hit, cache-miss, and output rates",
+      "retrievedAt": "2026-07-31T09:18:47Z"
+    },
+    {
+      "name": "Kimi K3 pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat-k3.md",
+      "provider": "moonshotai",
+      "basis": "cache-hit, cache-miss, and output rates",
+      "retrievedAt": "2026-07-31T09:18:47Z"
+    },
+    {
+      "name": "MiniMax pay-as-you-go pricing",
+      "url": "https://platform.minimax.io/docs/guides/pricing-paygo.md",
+      "provider": "minimax",
+      "basis": "standard rates; MiniMax-M3 <=512k input tokens",
+      "retrievedAt": "2026-07-31T09:18:47Z"
+    },
+    {
+      "name": "MiniMax explicit prompt-caching pricing",
+      "url": "https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache.md",
+      "provider": "minimax",
+      "basis": "cache-read and cache-write rates for M2-family models",
+      "retrievedAt": "2026-07-31T09:18:47Z"
+    },
+    {
+      "name": "models.dev fallback",
+      "url": "https://models.dev/api.json",
+      "retrievedAt": "2026-07-31T09:23:08Z",
+      "basis": "used only for models without an official-provider override"
+    }
+  ],
   "models": [
     {
       "model": "claude-fable-5",
@@ -578,7 +649,7 @@
       "model": "gpt-3.5-turbo",
       "provider": "openai",
       "inputPerMillion": 0.5,
-      "cacheReadPerMillion": 0,
+      "cacheReadPerMillion": 0.5,
       "cacheWritePerMillion": 0.5,
       "outputPerMillion": 1.5
     },
@@ -994,17 +1065,33 @@
       "model": "MiniMax-M2",
       "provider": "minimax",
       "inputPerMillion": 0.3,
-      "cacheReadPerMillion": 0.3,
-      "cacheWritePerMillion": 0.3,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 1.2
+    },
+    {
+      "model": "MiniMax-M2-Stable",
+      "provider": "minimax",
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
       "outputPerMillion": 1.2
     },
     {
       "model": "MiniMax-M2.1",
       "provider": "minimax",
       "inputPerMillion": 0.3,
-      "cacheReadPerMillion": 0.3,
-      "cacheWritePerMillion": 0.3,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
       "outputPerMillion": 1.2
+    },
+    {
+      "model": "MiniMax-M2.1-highspeed",
+      "provider": "minimax",
+      "inputPerMillion": 0.6,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.375,
+      "outputPerMillion": 2.4
     },
     {
       "model": "MiniMax-M2.5",
@@ -1018,7 +1105,7 @@
       "model": "MiniMax-M2.5-highspeed",
       "provider": "minimax",
       "inputPerMillion": 0.6,
-      "cacheReadPerMillion": 0.06,
+      "cacheReadPerMillion": 0.03,
       "cacheWritePerMillion": 0.375,
       "outputPerMillion": 2.4
     },
