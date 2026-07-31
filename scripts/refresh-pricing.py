@@ -35,8 +35,11 @@ def fetch(url: str) -> dict:
 def _validate_official(official: dict) -> None:
     sources = official.get("sources", [])
     source_ids = [source.get("id") for source in sources]
-    if any(not isinstance(source_id, str) or not source_id.strip() for source_id in source_ids):
-        raise ValueError("Official pricing sources must have non-empty string IDs")
+    if any(
+        not isinstance(source_id, str) or not source_id.strip() or source_id != source_id.strip()
+        for source_id in source_ids
+    ):
+        raise ValueError("Official pricing sources must have trimmed non-empty string IDs")
     normalized_source_ids = [source_id.casefold() for source_id in source_ids]
     if len(normalized_source_ids) != len(set(normalized_source_ids)):
         raise ValueError("Official pricing sources must have unique IDs case-insensitively")
@@ -64,7 +67,8 @@ def _validate_official(official: dict) -> None:
             raise ValueError(f"Official pricing entry {model_id} lacks provider or basis")
         raw_references = entry.get("sourceIds")
         if not isinstance(raw_references, list) or any(
-            not isinstance(source_id, str) or not source_id.strip() for source_id in raw_references
+            not isinstance(source_id, str) or not source_id.strip() or source_id != source_id.strip()
+            for source_id in raw_references
         ):
             raise ValueError(f"Official pricing entry {model_id} has invalid source IDs")
         referenced_sources = {source_id.casefold() for source_id in raw_references}

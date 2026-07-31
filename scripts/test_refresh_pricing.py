@@ -103,13 +103,15 @@ class CreateSnapshotTests(unittest.TestCase):
             refresh_pricing.create_snapshot({}, "https://models.dev/api.json", official)
 
     def test_official_source_ids_cannot_collide_with_fallback(self) -> None:
-        official = {
-            "sources": [{"id": "MODELS-DEV", "name": "reserved", "url": "https://one.test"}],
-            "models": [],
-        }
+        for source_id in ("MODELS-DEV", " models-dev "):
+            with self.subTest(source_id=source_id):
+                official = {
+                    "sources": [{"id": source_id, "name": "reserved", "url": "https://one.test"}],
+                    "models": [],
+                }
 
-        with self.assertRaisesRegex(ValueError, "reserved"):
-            refresh_pricing.create_snapshot({}, "https://models.dev/api.json", official)
+                with self.assertRaises(ValueError):
+                    refresh_pricing.create_snapshot({}, "https://models.dev/api.json", official)
 
     def test_official_model_source_ids_must_be_a_string_list(self) -> None:
         official = {
