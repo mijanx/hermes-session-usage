@@ -71,21 +71,28 @@ public sealed class ApiPricingCatalog
             PropertyNameCaseInsensitive = true
         }) ?? throw new InvalidDataException("The API pricing document is empty.");
 
-        if (document.SchemaVersion != 1)
+        if (document.SchemaVersion is not (1 or 2))
             throw new InvalidDataException($"Unsupported API pricing schema version {document.SchemaVersion}.");
         if (document.Models.Any(x => string.IsNullOrWhiteSpace(x.Model) ||
                                      x.InputPerMillion < 0 || x.CacheReadPerMillion < 0 ||
                                      x.CacheWritePerMillion < 0 || x.OutputPerMillion < 0))
             throw new InvalidDataException("The API pricing document contains an invalid model entry.");
 
-        var sourceIds = (document.Sources ?? [])
+        var sources = document.Sources ?? [];
+        var sourceIds = sources
             .Select(x => x.Id)
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Cast<string>()
             .ToArray();
-        if (sourceIds.Length != sourceIds.Distinct(StringComparer.OrdinalIgnoreCase).Count() ||
-            document.Models.Any(x => x.SourceIds is { Count: > 0 } &&
-                                     x.SourceIds.Any(id => !sourceIds.Contains(id, StringComparer.OrdinalIgnoreCase))))
+        var hasDuplicateSourceIds = sourceIds.Length != sourceIds
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
+        var hasUnknownSourceReference = document.Models.Any(x => x.SourceIds is { Count: > 0 } &&
+            x.SourceIds.Any(id => !sourceIds.Contains(id, StringComparer.OrdinalIgnoreCase)));
+        var lacksRequiredProvenance = document.SchemaVersion == 2 &&
+            (sourceIds.Length != sources.Count || document.Models.Any(x =>
+                x.SourceIds is not { Count: > 0 } || string.IsNullOrWhiteSpace(x.Basis)));
+        if (hasDuplicateSourceIds || hasUnknownSourceReference || lacksRequiredProvenance)
             throw new InvalidDataException("The API pricing document contains invalid provenance references.");
 
         return FromEntries(document.Models, document.Source, document.Sources);

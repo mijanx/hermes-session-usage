@@ -226,7 +226,7 @@ public sealed class ApiPricingCatalogTests
         {
             File.WriteAllText(path, """
                 {
-                  "schemaVersion": 1,
+                  "schemaVersion": 2,
                   "source": {
                     "name": "Official provider pricing with models.dev fallback",
                     "url": "https://example.test/pricing",
@@ -276,6 +276,49 @@ public sealed class ApiPricingCatalogTests
             Assert.NotNull(entry.SourceIds);
             Assert.Equal("openai-pricing", Assert.Single(entry.SourceIds));
             Assert.Equal("standard short-context rates", entry.Basis);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public void Load_rejects_schema_two_models_without_provenance()
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(path, """
+                {
+                  "schemaVersion": 2,
+                  "source": {
+                    "name": "merged",
+                    "url": "data/api-pricing.json",
+                    "retrievedAt": "2026-07-31T09:18:47Z"
+                  },
+                  "sources": [
+                    {
+                      "id": "official",
+                      "name": "official",
+                      "url": "https://example.test/pricing",
+                      "retrievedAt": "2026-07-31T09:18:47Z"
+                    }
+                  ],
+                  "models": [
+                    {
+                      "model": "missing-provenance",
+                      "provider": "test",
+                      "inputPerMillion": 1,
+                      "cacheReadPerMillion": 1,
+                      "cacheWritePerMillion": 1,
+                      "outputPerMillion": 1
+                    }
+                  ]
+                }
+                """);
+
+            Assert.Throws<InvalidDataException>(() => ApiPricingCatalog.Load(path));
         }
         finally
         {

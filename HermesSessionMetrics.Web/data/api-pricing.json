@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "source": {
     "id": "merged-snapshot",
     "name": "Official provider pricing with models.dev fallback",
     "url": "data/api-pricing.json",
-    "retrievedAt": "2026-07-31T09:37:41Z",
+    "retrievedAt": "2026-07-31T09:48:18Z",
     "basis": "Compatibility summary; inspect sources and each model's sourceIds for provenance"
   },
   "sources": [
@@ -84,7 +84,7 @@
       "id": "models-dev",
       "name": "models.dev fallback",
       "url": "https://models.dev/api.json",
-      "retrievedAt": "2026-07-31T09:37:41Z",
+      "retrievedAt": "2026-07-31T09:48:18Z",
       "basis": "used only for models without an official-provider override"
     }
   ],

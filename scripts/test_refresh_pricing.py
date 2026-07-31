@@ -90,6 +90,18 @@ class CreateSnapshotTests(unittest.TestCase):
         self.assertEqual("merged-snapshot", snapshot["source"]["id"])
         self.assertEqual("2026-07-31T09:18:47Z", snapshot["sources"][-1]["retrievedAt"])
 
+    def test_official_source_ids_are_case_insensitively_unique(self) -> None:
+        official = {
+            "sources": [
+                {"id": "OpenAI", "name": "one", "url": "https://one.test"},
+                {"id": "openai", "name": "two", "url": "https://two.test"},
+            ],
+            "models": [],
+        }
+
+        with self.assertRaisesRegex(ValueError, "case-insensitively"):
+            refresh_pricing.create_snapshot({}, "https://models.dev/api.json", official)
+
     def test_official_provider_file_contains_documented_rates(self) -> None:
         import json
 

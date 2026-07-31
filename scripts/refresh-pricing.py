@@ -35,10 +35,11 @@ def fetch(url: str) -> dict:
 def _validate_official(official: dict) -> None:
     sources = official.get("sources", [])
     source_ids = [source.get("id") for source in sources]
-    if any(not source_id for source_id in source_ids) or len(source_ids) != len(set(source_ids)):
-        raise ValueError("Official pricing sources must have unique non-empty IDs")
+    normalized_source_ids = [source_id.casefold() for source_id in source_ids if source_id]
+    if any(not source_id for source_id in source_ids) or len(normalized_source_ids) != len(set(normalized_source_ids)):
+        raise ValueError("Official pricing sources must have unique non-empty IDs case-insensitively")
 
-    known_sources = set(source_ids)
+    known_sources = set(normalized_source_ids)
     model_ids: set[str] = set()
     required_rates = (
         "inputPerMillion",
@@ -53,7 +54,8 @@ def _validate_official(official: dict) -> None:
         model_ids.add(model_id)
         if not entry.get("provider") or not entry.get("basis"):
             raise ValueError(f"Official pricing entry {model_id} lacks provider or basis")
-        if not entry.get("sourceIds") or not set(entry["sourceIds"]).issubset(known_sources):
+        referenced_sources = {source_id.casefold() for source_id in entry.get("sourceIds", [])}
+        if not referenced_sources or not referenced_sources.issubset(known_sources):
             raise ValueError(f"Official pricing entry {model_id} has invalid source IDs")
         if any(not isinstance(entry.get(rate), (int, float)) or entry[rate] < 0 for rate in required_rates):
             raise ValueError(f"Official pricing entry {model_id} has invalid rates")
@@ -105,7 +107,7 @@ def create_snapshot(
     })
 
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "source": {
             "id": "merged-snapshot",
             "name": "Official provider pricing with models.dev fallback",
