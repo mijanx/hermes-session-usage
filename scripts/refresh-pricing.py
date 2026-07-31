@@ -35,9 +35,13 @@ def fetch(url: str) -> dict:
 def _validate_official(official: dict) -> None:
     sources = official.get("sources", [])
     source_ids = [source.get("id") for source in sources]
-    normalized_source_ids = [source_id.casefold() for source_id in source_ids if source_id]
-    if any(not source_id for source_id in source_ids) or len(normalized_source_ids) != len(set(normalized_source_ids)):
-        raise ValueError("Official pricing sources must have unique non-empty IDs case-insensitively")
+    if any(not isinstance(source_id, str) or not source_id.strip() for source_id in source_ids):
+        raise ValueError("Official pricing sources must have non-empty string IDs")
+    normalized_source_ids = [source_id.casefold() for source_id in source_ids]
+    if len(normalized_source_ids) != len(set(normalized_source_ids)):
+        raise ValueError("Official pricing sources must have unique IDs case-insensitively")
+    if "models-dev" in normalized_source_ids:
+        raise ValueError("Official pricing sources cannot use the reserved models-dev ID")
 
     known_sources = set(normalized_source_ids)
     model_ids: set[str] = set()
@@ -48,13 +52,22 @@ def _validate_official(official: dict) -> None:
         "outputPerMillion",
     )
     for entry in official.get("models", []):
-        model_id = entry.get("model", "").casefold()
-        if not model_id or model_id in model_ids:
+        raw_model_id = entry.get("model")
+        if not isinstance(raw_model_id, str) or not raw_model_id.strip():
+            raise ValueError("Official pricing model IDs must be non-empty strings")
+        model_id = raw_model_id.casefold()
+        if model_id in model_ids:
             raise ValueError("Official pricing model IDs must be unique case-insensitively")
         model_ids.add(model_id)
-        if not entry.get("provider") or not entry.get("basis"):
+        if not isinstance(entry.get("provider"), str) or not entry["provider"].strip() or \
+           not isinstance(entry.get("basis"), str) or not entry["basis"].strip():
             raise ValueError(f"Official pricing entry {model_id} lacks provider or basis")
-        referenced_sources = {source_id.casefold() for source_id in entry.get("sourceIds", [])}
+        raw_references = entry.get("sourceIds")
+        if not isinstance(raw_references, list) or any(
+            not isinstance(source_id, str) or not source_id.strip() for source_id in raw_references
+        ):
+            raise ValueError(f"Official pricing entry {model_id} has invalid source IDs")
+        referenced_sources = {source_id.casefold() for source_id in raw_references}
         if not referenced_sources or not referenced_sources.issubset(known_sources):
             raise ValueError(f"Official pricing entry {model_id} has invalid source IDs")
         if any(not isinstance(entry.get(rate), (int, float)) or entry[rate] < 0 for rate in required_rates):

@@ -102,6 +102,35 @@ class CreateSnapshotTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "case-insensitively"):
             refresh_pricing.create_snapshot({}, "https://models.dev/api.json", official)
 
+    def test_official_source_ids_cannot_collide_with_fallback(self) -> None:
+        official = {
+            "sources": [{"id": "MODELS-DEV", "name": "reserved", "url": "https://one.test"}],
+            "models": [],
+        }
+
+        with self.assertRaisesRegex(ValueError, "reserved"):
+            refresh_pricing.create_snapshot({}, "https://models.dev/api.json", official)
+
+    def test_official_model_source_ids_must_be_a_string_list(self) -> None:
+        official = {
+            "sources": [{"id": "official", "name": "one", "url": "https://one.test"}],
+            "models": [
+                {
+                    "model": "test",
+                    "provider": "test",
+                    "inputPerMillion": 1,
+                    "cacheReadPerMillion": 1,
+                    "cacheWritePerMillion": 1,
+                    "outputPerMillion": 1,
+                    "sourceIds": "official",
+                    "basis": "standard",
+                }
+            ],
+        }
+
+        with self.assertRaisesRegex(ValueError, "invalid source IDs"):
+            refresh_pricing.create_snapshot({}, "https://models.dev/api.json", official)
+
     def test_official_provider_file_contains_documented_rates(self) -> None:
         import json
 
