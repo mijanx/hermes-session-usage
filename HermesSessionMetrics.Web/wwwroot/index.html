@@ -32,6 +32,7 @@
           <button data-window="24h" class="active">24 hours</button>
           <button data-window="7d">7 days</button>
           <button data-window="30d">30 days</button>
+          <button data-window="all">All time</button>
         </div>
       </div>
       <div class="control-group search-group">
@@ -41,8 +42,8 @@
       <div class="control-group">
         <label>Cost basis</label>
         <div id="costBasisPicker" class="segmented">
-          <button data-cost-basis="recorded" class="active">Recorded</button>
-          <button data-cost-basis="api-equivalent">API equivalent</button>
+          <button data-cost-basis="recorded">Recorded</button>
+          <button data-cost-basis="api-equivalent" class="active">API equivalent</button>
         </div>
       </div>
       <div class="control-group">
@@ -86,7 +87,7 @@
               <th class="number">Output</th>
               <th class="number">Reasoning</th>
               <th class="number">Accounted</th>
-              <th id="costHeader" class="number">Recorded cost</th>
+              <th id="costHeader" class="number">API equivalent</th>
             </tr>
           </thead>
           <tbody id="sessionRows"></tbody>

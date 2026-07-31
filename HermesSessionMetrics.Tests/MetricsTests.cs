@@ -227,6 +227,23 @@ public sealed class MetricsQueryServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Query_all_time_includes_sessions_outside_bounded_windows()
+    {
+        await SeedAsync();
+        var service = new MetricsQueryService(ApiPricingCatalog.Empty, () => Now);
+
+        var result = await service.QueryAsync(
+            [new ProfileDatabase("dev", _dbPath)],
+            new MetricsQuery(null, null, 100, 0),
+            CancellationToken.None);
+
+        Assert.Null(result.Hours);
+        Assert.Null(result.Cutoff);
+        Assert.Equal(2, result.FilteredSessions);
+        Assert.Contains(result.Families, x => x.RootSessionId == "old");
+    }
+
+    [Fact]
     public async Task Query_sorts_by_api_equivalent_cost_when_requested()
     {
         await SeedAsync();

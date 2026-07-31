@@ -3,7 +3,7 @@ const state = {
   window: "24h",
   search: "",
   sort: "tokens",
-  costBasis: "recorded",
+  costBasis: "api-equivalent",
   descending: true,
   limit: 100,
   offset: 0,
@@ -16,7 +16,7 @@ const state = {
 const $ = id => document.getElementById(id);
 const number = new Intl.NumberFormat("en", { maximumFractionDigits: 0 });
 const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 2 });
-const usd = new Intl.NumberFormat("en", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 4 });
+const usd = new Intl.NumberFormat("en", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const dateTime = new Intl.DateTimeFormat(undefined, { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 function escapeHtml(value) {
@@ -38,16 +38,21 @@ async function loadProfiles() {
   if (!response.ok) throw new Error(`Profiles request failed: ${response.status}`);
   const profiles = await response.json();
   if (![...state.profiles].some(name => profiles.some(x => x.name === name)) && profiles.length) state.profiles = new Set([profiles[0].name]);
-  $("profileChips").innerHTML = profiles.map(profile => {
+  const profileButtons = profiles.map(profile => {
     const active = state.profiles.has(profile.name) ? "active" : "";
     const size = `${(profile.sizeBytes / 1e9).toFixed(1)} GB`;
     return `<button class="chip ${active}" data-profile="${escapeHtml(profile.name)}" title="${size}">${escapeHtml(profile.name)}</button>`;
   }).join("");
+  const allActive = state.profiles.has("all") ? "active" : "";
+  $("profileChips").innerHTML = `<button class="chip ${allActive}" data-profile="all" title="Query every live profile">All</button>${profileButtons}`;
   $("profileChips").querySelectorAll("button").forEach(button => button.addEventListener("click", () => {
     const name = button.dataset.profile;
-    if (state.profiles.has(name) && state.profiles.size > 1) state.profiles.delete(name);
+    if (name === "all") state.profiles = new Set(["all"]);
+    else if (state.profiles.has("all")) state.profiles = new Set([name]);
+    else if (state.profiles.has(name) && state.profiles.size > 1) state.profiles.delete(name);
     else if (!state.profiles.has(name)) state.profiles.add(name);
-    button.classList.toggle("active", state.profiles.has(name));
+    $("profileChips").querySelectorAll("button").forEach(profileButton =>
+      profileButton.classList.toggle("active", state.profiles.has(profileButton.dataset.profile)));
     state.offset = 0;
     loadMetrics();
   }));
@@ -111,7 +116,7 @@ function renderSummary(result) {
   const costValue = apiEquivalent ? result.apiEquivalentCostUsd : result.estimatedCostUsd;
   const costNote = apiEquivalent
     ? `${coverage}% token coverage · rates ${pricingDate}`
-    : (result.actualCostUsd > 0 ? `${usd.format(result.actualCostUsd)} actual` : "subscription traffic may report $0");
+    : (result.actualCostUsd > 0 ? `${usd.format(result.actualCostUsd)} actual` : `subscription traffic may report ${usd.format(0)}`);
   $("summaryCards").innerHTML = [
     metricCard("Sessions", number.format(result.filteredSessions), `${number.format(result.totalSessions)} stored in selected profiles`),
     metricCard("Accounted tokens", compact.format(result.accountedTokens), "input + cache + output"),

@@ -3,13 +3,13 @@ namespace HermesSessionMetrics.Web.Metrics;
 public sealed record ProfileDatabase(string Name, string DatabasePath);
 
 public sealed record MetricsQuery(
-    int Hours,
+    int? Hours,
     string? Search,
     int Limit,
     int Offset,
     string Sort = "tokens",
     bool Descending = true,
-    string CostBasis = "recorded");
+    string CostBasis = "api-equivalent");
 
 public sealed record UsageLine(
     string Model,
@@ -72,8 +72,8 @@ public sealed record SessionFamilyMetrics(
 public sealed record MetricsResult(
     int SchemaVersion,
     DateTimeOffset GeneratedAt,
-    DateTimeOffset Cutoff,
-    int Hours,
+    DateTimeOffset? Cutoff,
+    int? Hours,
     IReadOnlyList<string> Profiles,
     int TotalSessions,
     int FilteredSessions,

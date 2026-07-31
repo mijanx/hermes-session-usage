@@ -13,12 +13,12 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
         MetricsQuery query,
         CancellationToken cancellationToken)
     {
-        if (query.Hours is not (24 or 168 or 720))
-            throw new ArgumentOutOfRangeException(nameof(query), "Window must be 24, 168, or 720 hours.");
+        if (query.Hours is not (null or 24 or 168 or 720))
+            throw new ArgumentOutOfRangeException(nameof(query), "Window must be all time, 24, 168, or 720 hours.");
 
         var watch = Stopwatch.StartNew();
         var now = _clock();
-        var cutoff = now.AddHours(-query.Hours);
+        var cutoff = query.Hours.HasValue ? now.AddHours(-query.Hours.Value) : (DateTimeOffset?)null;
         var totalSessions = 0;
         var sessions = new List<SessionMetrics>();
         var parentIndexes = new Dictionary<string, IReadOnlyDictionary<string, string?>>(StringComparer.Ordinal);
@@ -284,7 +284,7 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
 
     private async Task<ProfileResult> QueryProfileAsync(
         ProfileDatabase profile,
-        DateTimeOffset cutoff,
+        DateTimeOffset? cutoff,
         string? search,
         CancellationToken cancellationToken)
     {
@@ -330,7 +330,7 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
                        COALESCE(NULLIF(s.title, ''), NULLIF(s.display_name, ''), s.id) AS title
                 FROM sessions s
                 WHERE (
-                    s.started_at >= $cutoff OR EXISTS (
+                    $cutoff IS NULL OR s.started_at >= $cutoff OR EXISTS (
                         SELECT 1 FROM session_model_usage recent
                         WHERE recent.session_id = s.id
                           AND COALESCE(recent.last_seen, recent.first_seen, s.started_at) >= $cutoff
@@ -356,7 +356,9 @@ public sealed class MetricsQueryService(ApiPricingCatalog pricing, Func<DateTime
             LEFT JOIN session_model_usage u ON u.session_id = s.id
             ORDER BY s.started_at DESC
             """;
-        command.Parameters.AddWithValue("$cutoff", cutoff.ToUnixTimeMilliseconds() / 1000.0);
+        command.Parameters.AddWithValue("$cutoff", cutoff.HasValue
+            ? cutoff.Value.ToUnixTimeMilliseconds() / 1000.0
+            : DBNull.Value);
         var normalizedSearch = (search ?? string.Empty).Trim();
         command.Parameters.AddWithValue("$search", normalizedSearch);
         command.Parameters.AddWithValue("$pattern", $"%{normalizedSearch}%");

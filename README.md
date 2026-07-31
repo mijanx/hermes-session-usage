@@ -5,7 +5,7 @@ A local-first, read-only dashboard for exploring Hermes session token usage, mod
 ## Features
 
 - Discovers `~/.hermes/state.db` and immediate `~/.hermes/profiles/*/state.db` profile databases.
-- Fixed activity windows: **24 hours**, **7 days**, and **30 days**.
+- Activity windows: **24 hours**, **7 days**, **30 days**, and **all time**.
 - Groups parent sessions and their descendants into sortable, pagination-safe session families.
 - Collapses usage into `(model, task)` lines while retaining every observed provider/billing label.
 - Marks attached child sessions and displays their immediate parent session ID.
@@ -108,7 +108,7 @@ GET /api/pricing
 GET /api/metrics?profiles=default&window=7d&search=compression&sort=tokens&costBasis=api-equivalent&descending=true&limit=100&offset=0
 ```
 
-Allowed windows are `24h`, `7d`, and `30d`. Use `profiles=all` for every discovered live profile. Profile responses expose names and database sizes, not local filesystem paths.
+Allowed windows are `24h`, `7d`, `30d`, and `all`. Use `profiles=all` for every discovered live profile. The API defaults to `24h` and `costBasis=api-equivalent`; the dashboard exposes explicit **All** profile and **All time** controls. Profile responses expose names and database sizes, not local filesystem paths.
 
 `/api/metrics` currently returns response schema **v2**, identified by `schemaVersion: 2`. V2 is intentionally family-oriented: the former top-level `sessions` page was replaced by `families`, and each family contains its member `sessions` plus family-wide `usageLines`. Consumers written for the earlier unversioned shape must migrate to `families`.
 

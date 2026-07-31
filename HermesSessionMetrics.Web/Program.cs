@@ -82,15 +82,16 @@ app.MapGet("/api/metrics", async (
     if (selected.Count == 0)
         return Results.BadRequest(new { error = "No valid profiles selected." });
 
-    var hours = window?.ToLowerInvariant() switch
+    int? hours = window?.ToLowerInvariant() switch
     {
+        "all" => (int?)null,
         "7d" => 168,
         "30d" => 720,
         "24h" or null or "" => 24,
-        _ => 0
+        _ => -1
     };
-    if (hours == 0)
-        return Results.BadRequest(new { error = "Window must be 24h, 7d, or 30d." });
+    if (hours == -1)
+        return Results.BadRequest(new { error = "Window must be 24h, 7d, 30d, or all." });
 
     var query = new MetricsQuery(
         hours,
@@ -99,7 +100,7 @@ app.MapGet("/api/metrics", async (
         offset ?? 0,
         sort ?? "tokens",
         descending ?? true,
-        costBasis ?? "recorded");
+        costBasis ?? "api-equivalent");
     var result = await service.QueryAsync(selected, query, cancellationToken);
     return Results.Ok(result);
 });
