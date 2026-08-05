@@ -1,0 +1,3 @@
+name: session-usage
+version: 1.0.0
+description: Read-only Hermes session token and API-equivalent cost dashboard backend
