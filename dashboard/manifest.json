@@ -1,0 +1,7 @@
+{
+  "name": "session-usage",
+  "label": "Session Usage",
+  "description": "Read-only session token and API-equivalent pricing telemetry for Hermes Desktop.",
+  "version": "1.0.0",
+  "api": "plugin_api.py"
+}

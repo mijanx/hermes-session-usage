@@ -21,6 +21,46 @@ The dashboard never queries `messages`. SQLite connections are opened read-only 
 - Node.js only for the optional JavaScript syntax check
 - A Hermes installation with session accounting tables
 
+The native desktop plugin does not run the .NET web server. Its read-only
+FastAPI backend runs inside the Hermes gateway and uses Python's standard
+SQLite driver.
+
+## Install as a Hermes Desktop plugin
+
+The repository contains both halves required by the native desktop SDK:
+
+- `desktop/plugin.js` contributes the Session Usage page, sidebar entry,
+  command-palette action, and status-bar summary.
+- `dashboard/plugin_api.py` provides the plugin-scoped backend mounted at
+  `/api/plugins/session-usage` by the Hermes gateway.
+
+Install both halves into the active Hermes home, enable the Python backend,
+and restart the gateway:
+
+```bash
+python scripts/install-plugin.py
+hermes plugins enable session-usage
+hermes gateway restart
+```
+
+Hermes Desktop watches `desktop-plugins/` and normally loads the renderer
+within seconds. If it does not appear, run **Reload desktop plugins** from the
+desktop command palette. The page is then available from the **Session usage**
+sidebar row or **Open Session Usage** palette action.
+
+`HERMES_HOME` is honored automatically. To target an explicit installation or
+profile without changing the active shell environment:
+
+```bash
+python scripts/install-plugin.py --hermes-home /path/to/hermes/home
+```
+
+The desktop enable switch and Python backend allow-list are intentionally
+separate Hermes security gates. Settings → Plugins controls the renderer;
+`hermes plugins enable session-usage` permits the gateway to import the local
+backend code. Restart the gateway after backend changes. Renderer edits
+hot-reload.
+
 ## Run locally
 
 ```bash
@@ -77,6 +117,8 @@ Important limitations:
 ```bash
 dotnet test -c Release
 node --check HermesSessionMetrics.Web/wwwroot/app.js
+node --check desktop/plugin.js
+PYTHONPATH=/path/to/hermes-agent python -m unittest discover -s tests -v
 dotnet list package --vulnerable --include-transitive
 ```
 
