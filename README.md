@@ -27,26 +27,31 @@ SQLite driver.
 
 ## Install as a Hermes Desktop plugin
 
-The repository contains both halves required by the native desktop SDK:
+The repository contains all three plugin layers:
 
-- `desktop/plugin.js` contributes the Session Usage page, sidebar entry,
-  command-palette action, and status-bar summary.
-- `dashboard/plugin_api.py` provides the plugin-scoped backend mounted at
-  `/api/plugins/session-usage` by the Hermes gateway.
+- `desktop/plugin.js` contributes the native Desktop Session Usage page,
+  sidebar entry, command-palette action, and status-bar summary.
+- `dashboard/dist/index.js` contributes a native **Session Usage** tab to
+  `hermes dashboard` using the web dashboard Plugin SDK.
+- `dashboard/plugin_api.py` provides the shared plugin-scoped backend mounted
+  at `/api/plugins/session-usage` by Hermes.
 
-Install both halves into the active Hermes home, enable the Python backend,
-and restart the gateway:
+Install all layers into the active Hermes home, enable the Python backend, and
+restart the owning gateway/dashboard processes:
 
 ```bash
 python scripts/install-plugin.py
 hermes plugins enable session-usage
 hermes gateway restart
+# Restart `hermes dashboard`, or rescan after signing in:
+# GET /api/dashboard/plugins/rescan
 ```
 
-Hermes Desktop watches `desktop-plugins/` and normally loads the renderer
-within seconds. If it does not appear, run **Reload desktop plugins** from the
-desktop command palette. The page is then available from the **Session usage**
-sidebar row or **Open Session Usage** palette action.
+After dashboard restart/rescan, refresh the browser and open **Session Usage**
+from the web navigation. Hermes Desktop watches `desktop-plugins/` and normally
+loads its renderer within seconds. If it does not appear there, run **Reload
+desktop plugins** from the Desktop command palette. The native page is available
+from the **Session usage** sidebar row or **Open Session Usage** palette action.
 
 `HERMES_HOME` is honored automatically. To target an explicit installation or
 profile without changing the active shell environment:

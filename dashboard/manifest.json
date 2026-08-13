@@ -1,7 +1,13 @@
 {
   "name": "session-usage",
   "label": "Session Usage",
-  "description": "Read-only session token and API-equivalent pricing telemetry for Hermes Desktop.",
-  "version": "1.0.0",
+  "description": "Read-only session token, model/task, and API-equivalent pricing telemetry.",
+  "icon": "BarChart3",
+  "version": "1.1.0",
+  "tab": {
+    "path": "/session-usage",
+    "position": "after:analytics"
+  },
+  "entry": "dist/index.js",
   "api": "plugin_api.py"
 }

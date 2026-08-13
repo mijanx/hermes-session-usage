@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Install the Session Usage backend and desktop renderer into one Hermes home."""
+"""Install the Session Usage web backend plus Dashboard and Desktop renderers."""
 
 from __future__ import annotations
 
@@ -33,6 +33,7 @@ def install(source_root: Path, hermes_home: Path) -> tuple[Path, Path]:
         source_root / "plugin.yaml": backend_root / "plugin.yaml",
         source_root / "__init__.py": backend_root / "__init__.py",
         source_root / "dashboard" / "manifest.json": backend_root / "dashboard" / "manifest.json",
+        source_root / "dashboard" / "dist" / "index.js": backend_root / "dashboard" / "dist" / "index.js",
         source_root / "dashboard" / "plugin_api.py": backend_root / "dashboard" / "plugin_api.py",
         source_root / "HermesSessionMetrics.Web" / "data" / "api-pricing.json": (
             backend_root / "HermesSessionMetrics.Web" / "data" / "api-pricing.json"
@@ -59,9 +60,10 @@ def main() -> int:
     source_root = Path(__file__).resolve().parent.parent
     desktop_root, backend_root = install(source_root, args.hermes_home)
     print(f"\nDesktop renderer: {desktop_root}")
+    print(f"Dashboard plugin: {backend_root / 'dashboard'}")
     print(f"Python backend:   {backend_root}")
-    print("Next: hermes plugins enable session-usage, then restart the gateway.")
-    print("Hermes Desktop hot-reloads the renderer; use Reload desktop plugins if needed.")
+    print("Next: hermes plugins enable session-usage, then restart the gateway and dashboard.")
+    print("Hermes Desktop hot-reloads the renderer; the web dashboard discovers the tab on restart/rescan.")
     return 0
 
 
