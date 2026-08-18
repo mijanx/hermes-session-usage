@@ -46,6 +46,16 @@
     return fetchJSON(API + path, options);
   }
 
+  function formatCost(value) {
+    return value == null ? "—" : money.format(value);
+  }
+
+  function pricingCoverageNote(result) {
+    const priced = result.apiEquivalentPricedTokens || 0;
+    const unpriced = result.apiEquivalentUnpricedTokens || 0;
+    return number.format(priced) + " / " + number.format(priced + unpriced) + " eligible tokens priced";
+  }
+
   function Metric(props) {
     return h(Card, null, h(CardContent, { className: "pt-4 pb-4" },
       h("div", { style: css.metricLabel }, props.label),
@@ -91,7 +101,7 @@
         h("td", { style: css.td }, short.format(line.outputTokens || 0)),
         h("td", { style: css.td }, short.format(line.reasoningTokens || 0)),
         h("td", { style: css.td }, short.format(line.accountedTokens || 0)),
-        h("td", { style: css.td }, money.format((apiCost ? line.apiEquivalentCostUsd : line.estimatedCostUsd) || 0))
+        h("td", { style: css.td }, formatCost(apiCost ? line.apiEquivalentCostUsd : line.estimatedCostUsd))
       )))
     ));
   }
@@ -122,7 +132,7 @@
           ),
           h("div", { style: css.muted },
             dateTime.format(new Date(family.startedAt)) + " · " + short.format(family.accountedTokens || 0) +
-            " tokens · " + short.format(family.apiCalls || 0) + " calls · " + money.format(displayedCost || 0)
+            " tokens · " + short.format(family.apiCalls || 0) + " calls · " + formatCost(displayedCost)
           )
         ),
         family.sessions.length > 1 ? h(ToggleButton, {
@@ -148,22 +158,31 @@
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
+    const [profilesLoaded, setProfilesLoaded] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const limit = 50;
 
     useEffect(function () {
       let live = true;
+      setProfilesLoaded(false);
+      setLoading(true);
       api("/profiles").then(function (data) {
         if (!live) return;
-        setProfiles(data || []);
+        const list = data || [];
+        setProfiles(list);
         setSelected(function (current) {
-          return current.length ? current : (data && data.length ? [data[0].name] : []);
+          return current.length ? current : (list.length ? [list[0].name] : []);
         });
+        setProfilesLoaded(true);
+        if (!list.length) setLoading(false);
       }).catch(function (reason) {
-        if (live) setError(reason.message || String(reason));
+        if (!live) return;
+        setError(reason.message || String(reason));
+        setProfilesLoaded(true);
+        setLoading(false);
       });
       return function () { live = false; };
-    }, []);
+    }, [refreshKey]);
 
     useEffect(function () {
       const handle = window.setTimeout(function () {
@@ -178,7 +197,10 @@
     }, [selected, windowName, search, sort, costBasis, offset]);
 
     useEffect(function () {
-      if (!selected.length) return undefined;
+      if (!selected.length) {
+        if (profilesLoaded) setLoading(false);
+        return undefined;
+      }
       let live = true;
       setLoading(true);
       setError("");
@@ -187,7 +209,7 @@
         .catch(function (reason) { if (live) setError(reason.message || String(reason)); })
         .finally(function () { if (live) setLoading(false); });
       return function () { live = false; };
-    }, [request, refreshKey]);
+    }, [request, refreshKey, profilesLoaded]);
 
     const toggleProfile = useCallback(function (name) {
       setOffset(0);
@@ -201,7 +223,7 @@
 
     const first = result && result.filteredFamilies ? offset + 1 : 0;
     const last = result ? Math.min(offset + result.families.length, result.filteredFamilies) : 0;
-    const displayedCost = result ? (costBasis === "api-equivalent" ? result.apiEquivalentCostUsd : result.estimatedCostUsd) : 0;
+    const displayedCost = result ? (costBasis === "api-equivalent" ? result.apiEquivalentCostUsd : result.estimatedCostUsd) : null;
 
     return h("section", { style: css.page },
       h("header", { style: css.heading },
@@ -209,7 +231,7 @@
           h("h1", { style: css.title }, "Session Usage"),
           h("div", { style: css.muted }, "Read-only local token, model/task, and API-equivalent pricing telemetry")
         ),
-        h("div", { style: css.muted }, loading ? "Refreshing…" : (result ? "Live · " + result.queryElapsedMilliseconds + " ms" : "Connecting…"))
+        h("div", { style: css.muted }, loading ? "Refreshing…" : (result ? "Live · " + result.queryElapsedMilliseconds + " ms" : (profilesLoaded && !profiles.length ? "No profiles discovered" : "Connecting…")))
       ),
       h(Card, null, h(CardContent, { className: "pt-4 pb-4", style: css.controls },
         h("div", { style: css.profiles },
@@ -261,12 +283,13 @@
         h(Metric, { label: "API calls", value: short.format(result.apiCalls), note: number.format(result.filteredFamilies) + " families" }),
         h(Metric, {
           label: costBasis === "api-equivalent" ? "API equivalent" : "Recorded estimate",
-          value: money.format(displayedCost || 0),
+          value: formatCost(displayedCost),
           note: costBasis === "api-equivalent"
-            ? number.format(result.pricedTokens || 0) + " / " + number.format(result.pricingEligibleTokens || 0) + " eligible tokens priced"
+            ? pricingCoverageNote(result)
             : money.format(result.actualCostUsd || 0) + " actual"
         })
       ) : null,
+      profilesLoaded && !profiles.length ? h(Card, null, h(CardContent, { className: "pt-4 pb-4" }, "No Hermes profiles discovered. Refresh to retry profile discovery.")) : null,
       result && !result.families.length ? h(Card, null, h(CardContent, { className: "pt-4 pb-4" }, "No session families match this window and filter.")) : null,
       result ? result.families.map(family => h(FamilyCard, {
         key: family.profile + ":" + family.rootSessionId,

@@ -153,5 +153,27 @@ class InstallerTests(unittest.TestCase):
             self.assertIn('api("/metrics", { method: "POST"', bundle)
 
 
+class DashboardBundleTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.bundle = (ROOT / "dashboard" / "dist" / "index.js").read_text(encoding="utf-8")
+
+    def test_preserves_null_api_equivalent_cost(self) -> None:
+        self.assertIn('return value == null ? "—" : money.format(value);', self.bundle)
+        self.assertIn("formatCost(apiCost ? line.apiEquivalentCostUsd : line.estimatedCostUsd)", self.bundle)
+        self.assertNotIn("money.format((apiCost ? line.apiEquivalentCostUsd : line.estimatedCostUsd) || 0)", self.bundle)
+
+    def test_reads_api_equivalent_pricing_coverage_fields(self) -> None:
+        self.assertIn("result.apiEquivalentPricedTokens", self.bundle)
+        self.assertIn("result.apiEquivalentUnpricedTokens", self.bundle)
+        self.assertNotRegex(self.bundle, r"(?<![A-Za-z])result\.pricedTokens")
+        self.assertNotRegex(self.bundle, r"(?<![A-Za-z])result\.pricingEligibleTokens")
+
+    def test_finishes_loading_when_profiles_are_empty(self) -> None:
+        self.assertIn("if (!list.length) setLoading(false);", self.bundle)
+        self.assertIn("if (profilesLoaded) setLoading(false);", self.bundle)
+        self.assertIn("No profiles discovered", self.bundle)
+        self.assertIn("}, [refreshKey]);", self.bundle)
+
+
 if __name__ == "__main__":
     unittest.main()
