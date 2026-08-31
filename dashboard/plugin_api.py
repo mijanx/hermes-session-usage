@@ -48,8 +48,14 @@ def discover_profiles(root: Path | None = None) -> list[dict[str, Any]]:
     found: list[dict[str, Any]] = []
 
     def add(name: str, path: Path) -> None:
-        if path.is_file():
-            found.append({"name": name, "path": path.resolve(), "sizeBytes": path.stat().st_size})
+        try:
+            if not path.is_file():
+                return
+            resolved = path.resolve()
+            size_bytes = path.stat().st_size
+        except (OSError, RuntimeError):
+            return
+        found.append({"name": name, "path": resolved, "sizeBytes": size_bytes})
 
     add("default", root / "state.db")
     profiles_root = root / "profiles"

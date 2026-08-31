@@ -5,6 +5,7 @@ import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from dashboard import plugin_api
 
@@ -100,6 +101,25 @@ class PluginApiTests(unittest.TestCase):
             self.assertEqual([item["id"] for item in family["sessions"]], ["root", "child"])
             self.assertEqual(family["usageLines"][0]["provider"], "openai, openai-codex")
 
+    def test_skips_inaccessible_profile_database(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            _create_database(root / "state.db")
+            blocked = root / "profiles" / "blocked"
+            blocked.mkdir(parents=True)
+
+            original_is_file = Path.is_file
+
+            def is_file(path: Path) -> bool:
+                if path == blocked / "state.db":
+                    raise PermissionError(13, "Permission denied", str(path))
+                return original_is_file(path)
+
+            with mock.patch.object(Path, "is_file", is_file):
+                profiles = plugin_api.discover_profiles(root)
+
+            self.assertEqual([item["name"] for item in profiles], ["default"])
+
     def test_rejects_invalid_query_values(self) -> None:
         with self.assertRaisesRegex(ValueError, "Window"):
             plugin_api.query_metrics({"window": "forever"}, root=Path("unused"))
@@ -117,9 +137,55 @@ class InstallerTests(unittest.TestCase):
             desktop_root, backend_root = installer.install(ROOT, home)
             self.assertTrue((desktop_root / "plugin.js").is_file())
             self.assertTrue((backend_root / "plugin.yaml").is_file())
-            self.assertTrue((backend_root / "dashboard" / "manifest.json").is_file())
+            manifest_path = backend_root / "dashboard" / "manifest.json"
+            bundle_path = backend_root / "dashboard" / "dist" / "index.js"
+            self.assertTrue(manifest_path.is_file())
+            self.assertTrue(bundle_path.is_file())
             self.assertTrue((backend_root / "dashboard" / "plugin_api.py").is_file())
             self.assertTrue((backend_root / "HermesSessionMetrics.Web" / "data" / "api-pricing.json").is_file())
+
+            manifest = manifest_path.read_text(encoding="utf-8")
+            bundle = bundle_path.read_text(encoding="utf-8")
+            self.assertIn('"path": "/session-usage"', manifest)
+            self.assertIn('"entry": "dist/index.js"', manifest)
+            self.assertIn('__HERMES_PLUGINS__.register("session-usage"', bundle)
+            self.assertIn('const API = "/api/plugins/session-usage"', bundle)
+            self.assertIn('api("/metrics", { method: "POST"', bundle)
+
+
+class DashboardBundleTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.bundle = (ROOT / "dashboard" / "dist" / "index.js").read_text(encoding="utf-8")
+
+    def test_preserves_null_api_equivalent_cost(self) -> None:
+        self.assertIn('return value == null ? "—" : money.format(value);', self.bundle)
+        self.assertIn("formatCost(apiCost ? line.apiEquivalentCostUsd : line.estimatedCostUsd)", self.bundle)
+        self.assertNotIn("money.format((apiCost ? line.apiEquivalentCostUsd : line.estimatedCostUsd) || 0)", self.bundle)
+
+    def test_reads_api_equivalent_pricing_coverage_fields(self) -> None:
+        self.assertIn("result.apiEquivalentPricedTokens", self.bundle)
+        self.assertIn("result.apiEquivalentUnpricedTokens", self.bundle)
+        self.assertNotRegex(self.bundle, r"(?<![A-Za-z])result\.pricedTokens")
+        self.assertNotRegex(self.bundle, r"(?<![A-Za-z])result\.pricingEligibleTokens")
+
+    def test_finishes_loading_when_profiles_are_empty(self) -> None:
+        self.assertIn("if (!list.length) setLoading(false);", self.bundle)
+        self.assertIn("if (!profilesLoaded || profilesError || !profiles.length) return undefined;", self.bundle)
+        self.assertIn("No profiles discovered", self.bundle)
+        self.assertIn("}, [refreshKey]);", self.bundle)
+
+    def test_dashboard_refresh_and_error_guards_are_present(self) -> None:
+        self.assertIn('return retained.length ? retained : [list[0].name];', self.bundle)
+        self.assertIn('}, [request, profilesLoaded, profilesError, profiles]);', self.bundle)
+        self.assertNotIn('}, [request, refreshKey, profilesLoaded]);', self.bundle)
+        self.assertIn('setOffset(0); setProfilesLoaded(false); setRefreshKey(value => value + 1);', self.bundle)
+        self.assertIn('setResult(null);', self.bundle)
+        self.assertIn('profilesLoaded && !profilesError && !profiles.length', self.bundle)
+        self.assertIn('disabled: !profilesLoaded || Boolean(profilesError) || !profiles.length', self.bundle)
+
+    def test_renders_billing_mode_with_provider(self) -> None:
+        self.assertIn('if (line.billingMode) labels.push(line.billingMode);', self.bundle)
+        self.assertIn('usageAttribution(line)', self.bundle)
 
 
 if __name__ == "__main__":
