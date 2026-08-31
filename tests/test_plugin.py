@@ -170,9 +170,21 @@ class DashboardBundleTests(unittest.TestCase):
 
     def test_finishes_loading_when_profiles_are_empty(self) -> None:
         self.assertIn("if (!list.length) setLoading(false);", self.bundle)
-        self.assertIn("if (profilesLoaded) setLoading(false);", self.bundle)
+        self.assertIn("if (!profilesLoaded || profilesError) return undefined;", self.bundle)
         self.assertIn("No profiles discovered", self.bundle)
         self.assertIn("}, [refreshKey]);", self.bundle)
+
+    def test_dashboard_refresh_and_error_guards_are_present(self) -> None:
+        self.assertIn('return retained.length ? retained : [list[0].name];', self.bundle)
+        self.assertIn('}, [request, profilesLoaded, profilesError]);', self.bundle)
+        self.assertNotIn('}, [request, refreshKey, profilesLoaded]);', self.bundle)
+        self.assertIn('setOffset(0); setProfilesLoaded(false); setRefreshKey(value => value + 1);', self.bundle)
+        self.assertIn('setResult(null);', self.bundle)
+        self.assertIn('profilesLoaded && !profilesError && !profiles.length', self.bundle)
+
+    def test_renders_billing_mode_with_provider(self) -> None:
+        self.assertIn('if (line.billingMode) labels.push(line.billingMode);', self.bundle)
+        self.assertIn('usageAttribution(line)', self.bundle)
 
 
 if __name__ == "__main__":

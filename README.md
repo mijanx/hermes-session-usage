@@ -123,6 +123,7 @@ Important limitations:
 dotnet test -c Release
 node --check HermesSessionMetrics.Web/wwwroot/app.js
 node --check desktop/plugin.js
+node scripts/test-dashboard-plugin.mjs
 PYTHONPATH=/path/to/hermes-agent python -m unittest discover -s tests -v
 dotnet list package --vulnerable --include-transitive
 ```

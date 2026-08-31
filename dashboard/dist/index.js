@@ -50,6 +50,12 @@
     return value == null ? "—" : money.format(value);
   }
 
+  function usageAttribution(line) {
+    const labels = [line.provider || "unattributed"];
+    if (line.billingMode) labels.push(line.billingMode);
+    return labels.join(" · ");
+  }
+
   function pricingCoverageNote(result) {
     const priced = result.apiEquivalentPricedTokens || 0;
     const unpriced = result.apiEquivalentUnpricedTokens || 0;
@@ -93,7 +99,7 @@
         h("td", { style: { ...css.td, ...css.left } }, line.task || "agent"),
         h("td", { style: { ...css.td, ...css.left } },
           h("div", null, line.model || "unknown"),
-          h("div", { style: css.muted }, line.provider || "unattributed")
+          h("div", { style: css.muted }, usageAttribution(line))
         ),
         h("td", { style: css.td }, number.format(line.apiCalls || 0)),
         h("td", { style: css.td }, short.format(line.inputTokens || 0)),
@@ -157,6 +163,7 @@
     const [offset, setOffset] = useState(0);
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
+    const [profilesError, setProfilesError] = useState("");
     const [loading, setLoading] = useState(true);
     const [profilesLoaded, setProfilesLoaded] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
@@ -165,19 +172,26 @@
     useEffect(function () {
       let live = true;
       setProfilesLoaded(false);
+      setProfilesError("");
+      setError("");
+      setResult(null);
       setLoading(true);
       api("/profiles").then(function (data) {
         if (!live) return;
         const list = data || [];
         setProfiles(list);
         setSelected(function (current) {
-          return current.length ? current : (list.length ? [list[0].name] : []);
+          if (!list.length) return [];
+          if (current.includes("all")) return ["all"];
+          const available = new Set(list.map(profile => profile.name));
+          const retained = current.filter(name => available.has(name));
+          return retained.length ? retained : [list[0].name];
         });
         setProfilesLoaded(true);
         if (!list.length) setLoading(false);
       }).catch(function (reason) {
         if (!live) return;
-        setError(reason.message || String(reason));
+        setProfilesError(reason.message || String(reason));
         setProfilesLoaded(true);
         setLoading(false);
       });
@@ -197,19 +211,21 @@
     }, [selected, windowName, search, sort, costBasis, offset]);
 
     useEffect(function () {
+      if (!profilesLoaded || profilesError) return undefined;
       if (!selected.length) {
-        if (profilesLoaded) setLoading(false);
+        setLoading(false);
         return undefined;
       }
       let live = true;
       setLoading(true);
       setError("");
+      setResult(null);
       api("/metrics", { method: "POST", body: JSON.stringify(request), headers: { "Content-Type": "application/json" } })
         .then(function (data) { if (live) setResult(data); })
         .catch(function (reason) { if (live) setError(reason.message || String(reason)); })
         .finally(function () { if (live) setLoading(false); });
       return function () { live = false; };
-    }, [request, refreshKey, profilesLoaded]);
+    }, [request, profilesLoaded, profilesError]);
 
     const toggleProfile = useCallback(function (name) {
       setOffset(0);
@@ -231,7 +247,7 @@
           h("h1", { style: css.title }, "Session Usage"),
           h("div", { style: css.muted }, "Read-only local token, model/task, and API-equivalent pricing telemetry")
         ),
-        h("div", { style: css.muted }, loading ? "Refreshing…" : (result ? "Live · " + result.queryElapsedMilliseconds + " ms" : (profilesLoaded && !profiles.length ? "No profiles discovered" : "Connecting…")))
+        h("div", { style: css.muted }, loading ? "Refreshing…" : (result ? "Live · " + result.queryElapsedMilliseconds + " ms" : (profilesError ? "Profile discovery failed" : (profilesLoaded && !profiles.length ? "No profiles discovered" : "Connecting…"))))
       ),
       h(Card, null, h(CardContent, { className: "pt-4 pb-4", style: css.controls },
         h("div", { style: css.profiles },
@@ -273,8 +289,9 @@
           h(SelectOption, { value: "calls" }, "Sort: calls"),
           h(SelectOption, { value: "started" }, "Sort: started")
         ),
-        h(Button, { type: "button", variant: "outline", size: "sm", onClick: function () { setRefreshKey(value => value + 1); } }, "Refresh")
+        h(Button, { type: "button", variant: "outline", size: "sm", onClick: function () { setOffset(0); setProfilesLoaded(false); setRefreshKey(value => value + 1); } }, "Refresh")
       )),
+      profilesError ? h("div", { role: "alert", style: css.error }, "Profile discovery unavailable: " + profilesError) : null,
       error ? h("div", { role: "alert", style: css.error }, "Session usage backend unavailable: " + error) : null,
       result ? h("div", { style: css.metrics },
         h(Metric, { label: "Sessions", value: number.format(result.filteredSessions), note: number.format(result.totalSessions) + " stored" }),
@@ -289,7 +306,7 @@
             : money.format(result.actualCostUsd || 0) + " actual"
         })
       ) : null,
-      profilesLoaded && !profiles.length ? h(Card, null, h(CardContent, { className: "pt-4 pb-4" }, "No Hermes profiles discovered. Refresh to retry profile discovery.")) : null,
+      profilesLoaded && !profilesError && !profiles.length ? h(Card, null, h(CardContent, { className: "pt-4 pb-4" }, "No Hermes profiles discovered. Refresh to retry profile discovery.")) : null,
       result && !result.families.length ? h(Card, null, h(CardContent, { className: "pt-4 pb-4" }, "No session families match this window and filter.")) : null,
       result ? result.families.map(family => h(FamilyCard, {
         key: family.profile + ":" + family.rootSessionId,
