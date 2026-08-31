@@ -211,7 +211,7 @@
     }, [selected, windowName, search, sort, costBasis, offset]);
 
     useEffect(function () {
-      if (!profilesLoaded || profilesError) return undefined;
+      if (!profilesLoaded || profilesError || !profiles.length) return undefined;
       if (!selected.length) {
         setLoading(false);
         return undefined;
@@ -225,7 +225,7 @@
         .catch(function (reason) { if (live) setError(reason.message || String(reason)); })
         .finally(function () { if (live) setLoading(false); });
       return function () { live = false; };
-    }, [request, profilesLoaded, profilesError]);
+    }, [request, profilesLoaded, profilesError, profiles]);
 
     const toggleProfile = useCallback(function (name) {
       setOffset(0);
@@ -252,7 +252,7 @@
       h(Card, null, h(CardContent, { className: "pt-4 pb-4", style: css.controls },
         h("div", { style: css.profiles },
           h("span", { style: css.metricLabel }, "Profiles"),
-          h(ToggleButton, { active: selected.includes("all"), onClick: function () { toggleProfile("all"); } }, "All"),
+          h(ToggleButton, { active: selected.includes("all"), disabled: !profilesLoaded || Boolean(profilesError) || !profiles.length, onClick: function () { toggleProfile("all"); } }, "All"),
           profiles.map(profile => h(ToggleButton, {
             key: profile.name,
             active: selected.includes(profile.name),

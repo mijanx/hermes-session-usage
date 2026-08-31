@@ -250,6 +250,26 @@ async function testDiscoveryFailureIsNotReportedAsEmpty() {
   assert.ok(!containsText(harness.tree, "No profiles discovered"));
 }
 
+async function testSuccessfulEmptyDiscoveryDisablesAllAndCannotQueryMetrics() {
+  let metrics = 0;
+  const { component, hookTarget } = loadPlugin(path => {
+    if (path.endsWith("/profiles")) return Promise.resolve([]);
+    metrics += 1;
+    return Promise.resolve(result(0));
+  });
+  const harness = new HookHarness(component);
+  attachHooks(harness, hookTarget);
+  await harness.settle();
+
+  const all = findByText(harness.tree, "All");
+  assert.equal(all.props.disabled, true, "All must be disabled after successful empty discovery");
+  all.props.onClick();
+  await harness.settle();
+  assert.equal(metrics, 0, "defensive metrics guard must reject an empty-profile all selection");
+  assert.ok(containsText(harness.tree, "No Hermes profiles discovered"));
+  assert.ok(!containsText(harness.tree, "Session usage backend unavailable"));
+}
+
 async function testFailedRefreshDoesNotQueryStaleProfiles() {
   let profileRequests = 0;
   let metrics = 0;
@@ -299,6 +319,7 @@ async function testFailedMetricsDoesNotLeaveLiveStaleResult() {
 
 await testRefreshReconcilesProfilesAndQueriesOnce();
 await testDiscoveryFailureIsNotReportedAsEmpty();
+await testSuccessfulEmptyDiscoveryDisablesAllAndCannotQueryMetrics();
 await testFailedRefreshDoesNotQueryStaleProfiles();
 await testFailedMetricsDoesNotLeaveLiveStaleResult();
 console.log("dashboard plugin behavior: PASS");
