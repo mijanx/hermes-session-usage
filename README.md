@@ -87,10 +87,10 @@ The checked-in `HermesSessionMetrics.Web/data/api-pricing.json` file combines au
 
 | Provider | Official pricing source | Basis used |
 |---|---|---|
-| OpenAI | [API pricing](https://developers.openai.com/api/docs/pricing.md) and [latest-model guide](https://developers.openai.com/api/docs/guides/latest-model) | Standard, short-context text-token rates; guide-backed `gpt-5.6` alias |
-| xAI | [API pricing](https://docs.x.ai/developers/pricing.md) | Standard, short-context rates below 200k prompt tokens |
-| Kimi | [K2.5](https://platform.kimi.ai/docs/pricing/chat-k25.md), [K2.6](https://platform.kimi.ai/docs/pricing/chat-k26.md), [K2.7 Code](https://platform.kimi.ai/docs/pricing/chat-k27-code.md), and [K3](https://platform.kimi.ai/docs/pricing/chat-k3.md) | Cache-hit, cache-miss, and output rates |
-| MiniMax | [Pay-as-you-go](https://platform.minimax.io/docs/guides/pricing-paygo.md) and [prompt caching](https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache.md) | Standard rates; M3 uses the ≤512k tier |
+| OpenAI | [API pricing](https://developers.openai.com/api/docs/pricing) and [latest-model guide](https://developers.openai.com/api/docs/guides/latest-model) | Standard, short-context text-token rates; guide-backed `gpt-5.6` alias |
+| xAI | [API pricing](https://docs.x.ai/developers/pricing) | Standard, short-context rates below 200k prompt tokens |
+| Kimi | [current model pricing](https://platform.kimi.ai/docs/pricing/chat) and [model list](https://platform.kimi.ai/docs/models) | Active-model cache-hit, cache-miss, and output rates |
+| MiniMax | [Pay-as-you-go](https://platform.minimax.io/docs/guides/pricing-paygo) and [prompt caching](https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache) | Standard rates; M3 uses the ≤512k tier |
 
 Refresh the models.dev fallback and rebuild the merged snapshot explicitly:
 
