@@ -4,17 +4,17 @@
     "id": "merged-snapshot",
     "name": "Official provider pricing with models.dev fallback",
     "url": "data/api-pricing.json",
-    "retrievedAt": "2026-07-31T09:54:26Z",
+    "retrievedAt": "2026-09-17T09:30:02Z",
     "basis": "Compatibility summary; inspect sources and each model's sourceIds for provenance"
   },
   "sources": [
     {
       "name": "OpenAI API pricing",
-      "url": "https://developers.openai.com/api/docs/pricing.md",
+      "url": "https://developers.openai.com/api/docs/pricing",
       "provider": "openai",
       "basis": "standard short-context text-token rates",
       "id": "openai-pricing",
-      "retrievedAt": "2026-07-31T09:18:47Z"
+      "retrievedAt": "2026-09-17T09:28:55Z"
     },
     {
       "name": "OpenAI GPT-5.6 model guide",
@@ -22,69 +22,45 @@
       "provider": "openai",
       "basis": "gpt-5.6 alias routes to gpt-5.6-sol",
       "id": "openai-gpt-5.6-guide",
-      "retrievedAt": "2026-07-31T09:18:47Z"
+      "retrievedAt": "2026-09-17T09:28:55Z"
     },
     {
       "name": "xAI API pricing",
-      "url": "https://docs.x.ai/developers/pricing.md",
+      "url": "https://docs.x.ai/developers/pricing",
       "provider": "xai",
       "basis": "standard short-context text-token rates (<200k prompt tokens)",
       "id": "xai-pricing",
-      "retrievedAt": "2026-07-31T09:18:47Z"
+      "retrievedAt": "2026-09-17T09:28:55Z"
     },
     {
-      "name": "Kimi K2.5 pricing",
-      "url": "https://platform.kimi.ai/docs/pricing/chat-k25.md",
+      "name": "Kimi API pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat",
       "provider": "moonshotai",
-      "basis": "cache-hit, cache-miss, and output rates",
-      "id": "kimi-k2.5-pricing",
-      "retrievedAt": "2026-07-31T09:18:47Z"
-    },
-    {
-      "name": "Kimi K2.6 pricing",
-      "url": "https://platform.kimi.ai/docs/pricing/chat-k26.md",
-      "provider": "moonshotai",
-      "basis": "cache-hit, cache-miss, and output rates",
-      "id": "kimi-k2.6-pricing",
-      "retrievedAt": "2026-07-31T09:18:47Z"
-    },
-    {
-      "name": "Kimi K2.7 Code pricing",
-      "url": "https://platform.kimi.ai/docs/pricing/chat-k27-code.md",
-      "provider": "moonshotai",
-      "basis": "cache-hit, cache-miss, and output rates",
-      "id": "kimi-k2.7-code-pricing",
-      "retrievedAt": "2026-07-31T09:18:47Z"
-    },
-    {
-      "name": "Kimi K3 pricing",
-      "url": "https://platform.kimi.ai/docs/pricing/chat-k3.md",
-      "provider": "moonshotai",
-      "basis": "cache-hit, cache-miss, and output rates",
-      "id": "kimi-k3-pricing",
-      "retrievedAt": "2026-07-31T09:18:47Z"
+      "basis": "current cache-hit, cache-miss, and output rates",
+      "id": "kimi-pricing",
+      "retrievedAt": "2026-09-17T09:28:55Z"
     },
     {
       "name": "MiniMax pay-as-you-go pricing",
-      "url": "https://platform.minimax.io/docs/guides/pricing-paygo.md",
+      "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
       "provider": "minimax",
       "basis": "standard rates; MiniMax-M3 <=512k input tokens",
       "id": "minimax-paygo-pricing",
-      "retrievedAt": "2026-07-31T09:18:47Z"
+      "retrievedAt": "2026-09-17T09:28:55Z"
     },
     {
       "name": "MiniMax explicit prompt-caching pricing",
-      "url": "https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache.md",
+      "url": "https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache",
       "provider": "minimax",
       "basis": "cache-read and cache-write rates for M2-family models",
       "id": "minimax-cache-pricing",
-      "retrievedAt": "2026-07-31T09:18:47Z"
+      "retrievedAt": "2026-09-17T09:28:55Z"
     },
     {
       "id": "models-dev",
       "name": "models.dev fallback",
       "url": "https://models.dev/api.json",
-      "retrievedAt": "2026-07-31T09:54:26Z",
+      "retrievedAt": "2026-09-17T09:30:02Z",
       "basis": "used only for models without an official-provider override"
     }
   ],
@@ -94,6 +70,18 @@
       "provider": "anthropic",
       "inputPerMillion": 10,
       "cacheReadPerMillion": 1,
+      "cacheWritePerMillion": 12.5,
+      "outputPerMillion": 50,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "claude-fable-5-1",
+      "provider": "anthropic",
+      "inputPerMillion": 10,
+      "cacheReadPerMillion": 0.25,
       "cacheWritePerMillion": 12.5,
       "outputPerMillion": 50,
       "sourceIds": [
@@ -120,30 +108,6 @@
       "cacheReadPerMillion": 0.1,
       "cacheWritePerMillion": 1.25,
       "outputPerMillion": 5,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "claude-opus-4-1",
-      "provider": "anthropic",
-      "inputPerMillion": 15,
-      "cacheReadPerMillion": 1.5,
-      "cacheWritePerMillion": 18.75,
-      "outputPerMillion": 75,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "claude-opus-4-1-20250805",
-      "provider": "anthropic",
-      "inputPerMillion": 15,
-      "cacheReadPerMillion": 1.5,
-      "cacheWritePerMillion": 18.75,
-      "outputPerMillion": 75,
       "sourceIds": [
         "models-dev"
       ],
@@ -306,24 +270,12 @@
       "basis": "Direct API rates from the models.dev fallback catalog"
     },
     {
-      "model": "deepseek-chat",
+      "model": "deepseek-flash",
       "provider": "deepseek",
-      "inputPerMillion": 0.14,
-      "cacheReadPerMillion": 0.0028,
-      "cacheWritePerMillion": 0.14,
-      "outputPerMillion": 0.28,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "deepseek-reasoner",
-      "provider": "deepseek",
-      "inputPerMillion": 0.14,
-      "cacheReadPerMillion": 0.0028,
-      "cacheWritePerMillion": 0.14,
-      "outputPerMillion": 0.28,
+      "inputPerMillion": 0.15,
+      "cacheReadPerMillion": 0.003,
+      "cacheWritePerMillion": 0.15,
+      "outputPerMillion": 0.6,
       "sourceIds": [
         "models-dev"
       ],
@@ -332,10 +284,34 @@
     {
       "model": "deepseek-v4-flash",
       "provider": "deepseek",
-      "inputPerMillion": 0.14,
-      "cacheReadPerMillion": 0.0028,
-      "cacheWritePerMillion": 0.14,
-      "outputPerMillion": 0.28,
+      "inputPerMillion": 0.15,
+      "cacheReadPerMillion": 0.003,
+      "cacheWritePerMillion": 0.15,
+      "outputPerMillion": 0.6,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "deepseek-v4-flash-0731",
+      "provider": "alibaba",
+      "inputPerMillion": 0.2,
+      "cacheReadPerMillion": 0.04,
+      "cacheWritePerMillion": 0.2,
+      "outputPerMillion": 0.4,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "deepseek-v4-flash-vision-exp",
+      "provider": "deepseek",
+      "inputPerMillion": 0.15,
+      "cacheReadPerMillion": 0.003,
+      "cacheWritePerMillion": 0.15,
+      "outputPerMillion": 0.6,
       "sourceIds": [
         "models-dev"
       ],
@@ -419,30 +395,6 @@
       "inputPerMillion": 0.1,
       "cacheReadPerMillion": 0.1,
       "cacheWritePerMillion": 0.1,
-      "outputPerMillion": 0.3,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "gemini-2.0-flash",
-      "provider": "google",
-      "inputPerMillion": 0.1,
-      "cacheReadPerMillion": 0.025,
-      "cacheWritePerMillion": 0.1,
-      "outputPerMillion": 0.4,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "gemini-2.0-flash-lite",
-      "provider": "google",
-      "inputPerMillion": 0.075,
-      "cacheReadPerMillion": 0.075,
-      "cacheWritePerMillion": 0.075,
       "outputPerMillion": 0.3,
       "sourceIds": [
         "models-dev"
@@ -564,18 +516,6 @@
       "cacheReadPerMillion": 2,
       "cacheWritePerMillion": 2,
       "outputPerMillion": 120,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "gemini-3-pro-preview",
-      "provider": "google",
-      "inputPerMillion": 2,
-      "cacheReadPerMillion": 0.2,
-      "cacheWritePerMillion": 2,
-      "outputPerMillion": 12,
       "sourceIds": [
         "models-dev"
       ],
@@ -728,10 +668,34 @@
     {
       "model": "gemini-3.6-flash",
       "provider": "google",
-      "inputPerMillion": 1.5,
-      "cacheReadPerMillion": 0.15,
-      "cacheWritePerMillion": 1.5,
-      "outputPerMillion": 7.5,
+      "inputPerMillion": 0.75,
+      "cacheReadPerMillion": 0.075,
+      "cacheWritePerMillion": 0.75,
+      "outputPerMillion": 3.75,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "gemini-3.7-flash",
+      "provider": "google",
+      "inputPerMillion": 0.75,
+      "cacheReadPerMillion": 0.075,
+      "cacheWritePerMillion": 0.75,
+      "outputPerMillion": 3.75,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "provider": "google",
+      "inputPerMillion": 0.75,
+      "cacheReadPerMillion": 0.075,
+      "cacheWritePerMillion": 0.75,
+      "outputPerMillion": 3.75,
       "sourceIds": [
         "models-dev"
       ],
@@ -764,10 +728,10 @@
     {
       "model": "gemini-flash-latest",
       "provider": "google",
-      "inputPerMillion": 1.5,
-      "cacheReadPerMillion": 0.15,
-      "cacheWritePerMillion": 1.5,
-      "outputPerMillion": 9,
+      "inputPerMillion": 0.75,
+      "cacheReadPerMillion": 0.075,
+      "cacheWritePerMillion": 0.75,
+      "outputPerMillion": 3.75,
       "sourceIds": [
         "models-dev"
       ],
@@ -776,10 +740,10 @@
     {
       "model": "gemini-flash-lite-latest",
       "provider": "google",
-      "inputPerMillion": 0.25,
-      "cacheReadPerMillion": 0.025,
-      "cacheWritePerMillion": 0.25,
-      "outputPerMillion": 1.5,
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.03,
+      "cacheWritePerMillion": 0.3,
+      "outputPerMillion": 2.5,
       "sourceIds": [
         "models-dev"
       ],
@@ -792,18 +756,6 @@
       "cacheReadPerMillion": 1.5,
       "cacheWritePerMillion": 1.5,
       "outputPerMillion": 17.5,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "gemini-robotics-er-1.6-preview",
-      "provider": "google",
-      "inputPerMillion": 1,
-      "cacheReadPerMillion": 1,
-      "cacheWritePerMillion": 1,
-      "outputPerMillion": 5,
       "sourceIds": [
         "models-dev"
       ],
@@ -924,6 +876,30 @@
       "cacheReadPerMillion": 0.26,
       "cacheWritePerMillion": 0,
       "outputPerMillion": 4.4,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "glm-5.3",
+      "provider": "zhipuai",
+      "inputPerMillion": 1.4,
+      "cacheReadPerMillion": 0.26,
+      "cacheWritePerMillion": 0,
+      "outputPerMillion": 4.4,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "glm-5.3-flash",
+      "provider": "zhipuai",
+      "inputPerMillion": 0.075,
+      "cacheReadPerMillion": 0.015,
+      "cacheWritePerMillion": 0,
+      "outputPerMillion": 0.25,
       "sourceIds": [
         "models-dev"
       ],
@@ -1280,10 +1256,10 @@
     {
       "model": "gpt-5.6",
       "provider": "openai",
-      "inputPerMillion": 5,
-      "cacheReadPerMillion": 0.5,
-      "cacheWritePerMillion": 6.25,
-      "outputPerMillion": 30,
+      "inputPerMillion": 4,
+      "cacheReadPerMillion": 0.4,
+      "cacheWritePerMillion": 5,
+      "outputPerMillion": 20,
       "sourceIds": [
         "openai-pricing",
         "openai-gpt-5.6-guide"
@@ -1305,10 +1281,10 @@
     {
       "model": "gpt-5.6-sol",
       "provider": "openai",
-      "inputPerMillion": 5,
-      "cacheReadPerMillion": 0.5,
-      "cacheWritePerMillion": 6.25,
-      "outputPerMillion": 30,
+      "inputPerMillion": 4,
+      "cacheReadPerMillion": 0.4,
+      "cacheWritePerMillion": 5,
+      "outputPerMillion": 20,
       "sourceIds": [
         "openai-pricing"
       ],
@@ -1325,6 +1301,18 @@
         "openai-pricing"
       ],
       "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
+    },
+    {
+      "model": "gpt-6-astra",
+      "provider": "openai",
+      "inputPerMillion": 10,
+      "cacheReadPerMillion": 1,
+      "cacheWritePerMillion": 12.5,
+      "outputPerMillion": 50,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context token rates with the published cache-write rate"
     },
     {
       "model": "gpt-image-2",
@@ -1411,6 +1399,18 @@
       "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
     },
     {
+      "model": "grok-4.6",
+      "provider": "xai",
+      "inputPerMillion": 2,
+      "cacheReadPerMillion": 0.5,
+      "cacheWritePerMillion": 2,
+      "outputPerMillion": 6,
+      "sourceIds": [
+        "xai-pricing"
+      ],
+      "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
+    },
+    {
       "model": "grok-build-0.1",
       "provider": "xai",
       "inputPerMillion": 1,
@@ -1423,78 +1423,6 @@
       "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
     },
     {
-      "model": "kimi-k2-0711-preview",
-      "provider": "moonshotai",
-      "inputPerMillion": 0.6,
-      "cacheReadPerMillion": 0.15,
-      "cacheWritePerMillion": 0.6,
-      "outputPerMillion": 2.5,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "kimi-k2-0905-preview",
-      "provider": "moonshotai",
-      "inputPerMillion": 0.6,
-      "cacheReadPerMillion": 0.15,
-      "cacheWritePerMillion": 0.6,
-      "outputPerMillion": 2.5,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "kimi-k2-thinking",
-      "provider": "moonshotai",
-      "inputPerMillion": 0.6,
-      "cacheReadPerMillion": 0.15,
-      "cacheWritePerMillion": 0.6,
-      "outputPerMillion": 2.5,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "kimi-k2-thinking-turbo",
-      "provider": "moonshotai",
-      "inputPerMillion": 1.15,
-      "cacheReadPerMillion": 0.15,
-      "cacheWritePerMillion": 1.15,
-      "outputPerMillion": 8,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "kimi-k2-turbo-preview",
-      "provider": "moonshotai",
-      "inputPerMillion": 2.4,
-      "cacheReadPerMillion": 0.6,
-      "cacheWritePerMillion": 2.4,
-      "outputPerMillion": 10,
-      "sourceIds": [
-        "models-dev"
-      ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
-    },
-    {
-      "model": "kimi-k2.5",
-      "provider": "moonshotai",
-      "inputPerMillion": 0.6,
-      "cacheReadPerMillion": 0.1,
-      "cacheWritePerMillion": 0.6,
-      "outputPerMillion": 3,
-      "sourceIds": [
-        "kimi-k2.5-pricing"
-      ],
-      "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
-    },
-    {
       "model": "kimi-k2.6",
       "provider": "moonshotai",
       "inputPerMillion": 0.95,
@@ -1502,7 +1430,7 @@
       "cacheWritePerMillion": 0.95,
       "outputPerMillion": 4,
       "sourceIds": [
-        "kimi-k2.6-pricing"
+        "kimi-pricing"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
@@ -1514,7 +1442,7 @@
       "cacheWritePerMillion": 0.95,
       "outputPerMillion": 4,
       "sourceIds": [
-        "kimi-k2.7-code-pricing"
+        "kimi-pricing"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
@@ -1526,7 +1454,7 @@
       "cacheWritePerMillion": 1.9,
       "outputPerMillion": 8,
       "sourceIds": [
-        "kimi-k2.7-code-pricing"
+        "kimi-pricing"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
@@ -1538,7 +1466,7 @@
       "cacheWritePerMillion": 3,
       "outputPerMillion": 15,
       "sourceIds": [
-        "kimi-k3-pricing"
+        "kimi-pricing"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
@@ -1568,19 +1496,6 @@
     },
     {
       "model": "MiniMax-M2",
-      "provider": "minimax",
-      "inputPerMillion": 0.3,
-      "cacheReadPerMillion": 0.03,
-      "cacheWritePerMillion": 0.375,
-      "outputPerMillion": 1.2,
-      "sourceIds": [
-        "minimax-paygo-pricing",
-        "minimax-cache-pricing"
-      ],
-      "basis": "Standard pay-as-you-go rates; explicit cache rates where published, otherwise cache writes use ordinary input rates"
-    },
-    {
-      "model": "MiniMax-M2-Stable",
       "provider": "minimax",
       "inputPerMillion": 0.3,
       "cacheReadPerMillion": 0.03,
@@ -2595,6 +2510,30 @@
       "basis": "Direct API rates from the models.dev fallback catalog"
     },
     {
+      "model": "qwen3.8-flash",
+      "provider": "alibaba",
+      "inputPerMillion": 0.15,
+      "cacheReadPerMillion": 0.016,
+      "cacheWritePerMillion": 0.2,
+      "outputPerMillion": 0.47,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "qwen3.8-max",
+      "provider": "alibaba",
+      "inputPerMillion": 2,
+      "cacheReadPerMillion": 0.25,
+      "cacheWritePerMillion": 2.5,
+      "outputPerMillion": 6,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
       "model": "qwq-plus",
       "provider": "alibaba",
       "inputPerMillion": 0.8,
@@ -2637,6 +2576,30 @@
       "cacheReadPerMillion": 0.1,
       "cacheWritePerMillion": 0.1,
       "outputPerMillion": 0,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "voxtral-small-latest",
+      "provider": "mistral",
+      "inputPerMillion": 0.1,
+      "cacheReadPerMillion": 0.1,
+      "cacheWritePerMillion": 0.1,
+      "outputPerMillion": 0.3,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "zai-glm-5-2",
+      "provider": "mistral",
+      "inputPerMillion": 1.4,
+      "cacheReadPerMillion": 0.14,
+      "cacheWritePerMillion": 1.4,
+      "outputPerMillion": 4.4,
       "sourceIds": [
         "models-dev"
       ],

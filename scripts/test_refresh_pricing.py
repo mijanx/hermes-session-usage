@@ -141,8 +141,10 @@ class CreateSnapshotTests(unittest.TestCase):
         prices = {entry["model"]: entry for entry in document["models"]}
 
         expected = {
-            "gpt-5.6-sol": (5, 0.5, 6.25, 30),
+            "gpt-6-astra": (10, 1, 12.5, 50),
+            "gpt-5.6-sol": (4, 0.4, 5, 20),
             "gpt-5.3-codex": (1.75, 0.175, 1.75, 14),
+            "grok-4.6": (2, 0.5, 2, 6),
             "grok-4.5": (2, 0.3, 2, 6),
             "kimi-k2.6": (0.95, 0.16, 0.95, 4),
             "MiniMax-M3": (0.3, 0.06, 0.3, 1.2),
@@ -160,6 +162,10 @@ class CreateSnapshotTests(unittest.TestCase):
                 ),
                 model,
             )
+
+        self.assertNotIn("kimi-k2.5", prices)
+        self.assertNotIn("MiniMax-M2-Stable", prices)
+        self.assertEqual(["kimi-pricing"], prices["kimi-k2.6"]["sourceIds"])
 
         source_ids = {source["id"] for source in document["sources"]}
         self.assertEqual(len(document["sources"]), len(source_ids))
