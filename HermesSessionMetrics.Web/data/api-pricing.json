@@ -4,7 +4,7 @@
     "id": "merged-snapshot",
     "name": "Official provider pricing with models.dev fallback",
     "url": "data/api-pricing.json",
-    "retrievedAt": "2026-09-17T09:30:02Z",
+    "retrievedAt": "2026-09-17T09:45:45Z",
     "basis": "Compatibility summary; inspect sources and each model's sourceIds for provenance"
   },
   "sources": [
@@ -14,7 +14,7 @@
       "provider": "openai",
       "basis": "standard short-context text-token rates",
       "id": "openai-pricing",
-      "retrievedAt": "2026-09-17T09:28:55Z"
+      "retrievedAt": "2026-09-17T09:45:18Z"
     },
     {
       "name": "OpenAI GPT-5.6 model guide",
@@ -22,7 +22,7 @@
       "provider": "openai",
       "basis": "gpt-5.6 alias routes to gpt-5.6-sol",
       "id": "openai-gpt-5.6-guide",
-      "retrievedAt": "2026-09-17T09:28:55Z"
+      "retrievedAt": "2026-09-17T09:45:18Z"
     },
     {
       "name": "xAI API pricing",
@@ -30,7 +30,7 @@
       "provider": "xai",
       "basis": "standard short-context text-token rates (<200k prompt tokens)",
       "id": "xai-pricing",
-      "retrievedAt": "2026-09-17T09:28:55Z"
+      "retrievedAt": "2026-09-17T09:45:18Z"
     },
     {
       "name": "Kimi API pricing",
@@ -38,7 +38,15 @@
       "provider": "moonshotai",
       "basis": "current cache-hit, cache-miss, and output rates",
       "id": "kimi-pricing",
-      "retrievedAt": "2026-09-17T09:28:55Z"
+      "retrievedAt": "2026-09-17T09:45:18Z"
+    },
+    {
+      "name": "Kimi model list",
+      "url": "https://platform.kimi.ai/docs/models",
+      "provider": "moonshotai",
+      "basis": "active and deprecated model status",
+      "id": "kimi-model-list",
+      "retrievedAt": "2026-09-17T09:45:18Z"
     },
     {
       "name": "MiniMax pay-as-you-go pricing",
@@ -46,7 +54,7 @@
       "provider": "minimax",
       "basis": "standard rates; MiniMax-M3 <=512k input tokens",
       "id": "minimax-paygo-pricing",
-      "retrievedAt": "2026-09-17T09:28:55Z"
+      "retrievedAt": "2026-09-17T09:45:18Z"
     },
     {
       "name": "MiniMax explicit prompt-caching pricing",
@@ -54,13 +62,13 @@
       "provider": "minimax",
       "basis": "cache-read and cache-write rates for M2-family models",
       "id": "minimax-cache-pricing",
-      "retrievedAt": "2026-09-17T09:28:55Z"
+      "retrievedAt": "2026-09-17T09:45:18Z"
     },
     {
       "id": "models-dev",
       "name": "models.dev fallback",
       "url": "https://models.dev/api.json",
-      "retrievedAt": "2026-09-17T09:30:02Z",
+      "retrievedAt": "2026-09-17T09:45:45Z",
       "basis": "used only for models without an official-provider override"
     }
   ],
@@ -1264,7 +1272,7 @@
         "openai-pricing",
         "openai-gpt-5.6-guide"
       ],
-      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
+      "basis": "Standard short-context token rates with the published cache-write rate"
     },
     {
       "model": "gpt-5.6-luna",
@@ -1288,7 +1296,7 @@
       "sourceIds": [
         "openai-pricing"
       ],
-      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
+      "basis": "Standard short-context token rates with the published cache-write rate"
     },
     {
       "model": "gpt-5.6-terra",
@@ -1430,7 +1438,8 @@
       "cacheWritePerMillion": 0.95,
       "outputPerMillion": 4,
       "sourceIds": [
-        "kimi-pricing"
+        "kimi-pricing",
+        "kimi-model-list"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
@@ -1442,7 +1451,8 @@
       "cacheWritePerMillion": 0.95,
       "outputPerMillion": 4,
       "sourceIds": [
-        "kimi-pricing"
+        "kimi-pricing",
+        "kimi-model-list"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
@@ -1454,7 +1464,8 @@
       "cacheWritePerMillion": 1.9,
       "outputPerMillion": 8,
       "sourceIds": [
-        "kimi-pricing"
+        "kimi-pricing",
+        "kimi-model-list"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
@@ -1466,7 +1477,8 @@
       "cacheWritePerMillion": 3,
       "outputPerMillion": 15,
       "sourceIds": [
-        "kimi-pricing"
+        "kimi-pricing",
+        "kimi-model-list"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },

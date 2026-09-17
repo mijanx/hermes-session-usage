@@ -165,7 +165,9 @@ class CreateSnapshotTests(unittest.TestCase):
 
         self.assertNotIn("kimi-k2.5", prices)
         self.assertNotIn("MiniMax-M2-Stable", prices)
-        self.assertEqual(["kimi-pricing"], prices["kimi-k2.6"]["sourceIds"])
+        self.assertEqual(["kimi-pricing", "kimi-model-list"], prices["kimi-k2.6"]["sourceIds"])
+        self.assertIn("published cache-write rate", prices["gpt-5.6"]["basis"])
+        self.assertIn("published cache-write rate", prices["gpt-5.6-sol"]["basis"])
 
         source_ids = {source["id"] for source in document["sources"]}
         self.assertEqual(len(document["sources"]), len(source_ids))
