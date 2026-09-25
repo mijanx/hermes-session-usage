@@ -87,10 +87,11 @@ The checked-in `HermesSessionMetrics.Web/data/api-pricing.json` file combines au
 
 | Provider | Official pricing source | Basis used |
 |---|---|---|
-| OpenAI | [API pricing](https://developers.openai.com/api/docs/pricing) and [latest-model guide](https://developers.openai.com/api/docs/guides/latest-model) | Standard, short-context text-token rates; guide-backed `gpt-5.6` alias |
-| xAI | [API pricing](https://docs.x.ai/developers/pricing) | Standard, short-context rates below 200k prompt tokens |
-| Kimi | [current model pricing](https://platform.kimi.ai/docs/pricing/chat) and [model list](https://platform.kimi.ai/docs/models) | Active-model cache-hit, cache-miss, and output rates |
-| MiniMax | [Pay-as-you-go](https://platform.minimax.io/docs/guides/pricing-paygo) and [prompt caching](https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache) | Standard rates; M3 uses the ≤512k tier |
+| OpenAI | [API pricing](https://developers.openai.com/api/docs/pricing.md), [GPT-5.6 Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna.md), [GPT-6 Astra](https://developers.openai.com/api/docs/models/gpt-6-astra.md), [GPT-6 Sol](https://developers.openai.com/api/docs/models/gpt-6-sol.md), [GPT-6 Luna](https://developers.openai.com/api/docs/models/gpt-6-luna.md), and [latest-model guide](https://developers.openai.com/api/docs/guides/latest-model.md) | Standard, short-context rates; includes GPT-6 and the Daybreak aliases with their documented targets |
+| xAI | [API pricing](https://docs.x.ai/developers/pricing.md) | Standard, short-context rates below 200k input tokens; long-context rates are higher and not modeled |
+| Kimi | [current model pricing](https://platform.kimi.ai/docs/pricing/chat.md), [K2.7 Code pricing](https://platform.kimi.ai/docs/pricing/chat-k27-code.md), and [model list](https://platform.kimi.ai/docs/models.md) | Active-model cache-hit, cache-miss, output, and cache-write rates; K3 uses its default 5-minute cache-write tier |
+| MiniMax | [Pay-as-you-go](https://platform.minimax.io/docs/guides/pricing-paygo.md) and [prompt caching](https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache.md) | Standard rates; M3 uses the ≤512k tier |
+| DeepSeek | [API pricing](https://api-docs.deepseek.com/quick_start/pricing/) | Peak V4.1 Flash rates; off-peak is 50% lower. Legacy V4 Flash names are priced at the current Flash rate per DeepSeek's migration note |
 
 Refresh the models.dev fallback and rebuild the merged snapshot explicitly:
 
@@ -99,7 +100,7 @@ python3 scripts/refresh-pricing.py
 git diff -- HermesSessionMetrics.Web/data/api-pricing.json
 ```
 
-The refresh script applies the official OpenAI, xAI, Kimi, and MiniMax entries after importing non-zero direct API prices from models.dev for OpenAI, xAI, DeepSeek, Anthropic, Google, Mistral, MiniMax, Zhipu AI, Moonshot AI, and Alibaba. Official entries therefore win on model-ID collisions. The script deliberately does not scrape vendor documentation: recheck the linked pages and update `official-provider-pricing.json` when refreshing those audited rates. The dashboard matches model IDs case-insensitively and calculates:
+The refresh script applies audited official OpenAI, xAI, Kimi, MiniMax, and DeepSeek entries after importing non-zero direct API prices from models.dev for OpenAI, xAI, DeepSeek, Anthropic, Google, Mistral, MiniMax, Zhipu AI, Moonshot AI, and Alibaba. Official entries therefore win on model-ID collisions. The script deliberately does not scrape vendor documentation: recheck the linked pages and update `official-provider-pricing.json` when refreshing those audited rates. The dashboard matches model IDs case-insensitively and calculates:
 
 ```text
 (input × input rate
@@ -114,6 +115,9 @@ Important limitations:
 - Models without a direct price match display `—` and are excluded from the equivalent-cost total. The UI reports token coverage.
 - Standard base rates are used. OpenAI, xAI, and MiniMax context-length uplifts cannot be reconstructed because per-request context sizes are not stored in the aggregate table.
 - If an official page publishes cache-read pricing but no separate cache-write price, cache writes use the ordinary input/cache-miss rate rather than inventing a discount.
+- The Hermes Kimi Coding alias `kimi-k2.7` is mapped to the official `kimi-k2.7-code` list rates; treat this as an API-equivalent estimate, not subscription spend or confirmed provider-specific pricing.
+- Kimi K3 publishes both 5-minute ($3/M) and 1-hour ($6/M) cache-write tiers. The single cache-write field uses Kimi's default 5-minute tier; the selected TTL cannot be inferred from session aggregates.
+- DeepSeek V4.1 Flash rates vary by UTC peak/off-peak window (peak is 2× off-peak). The stored estimate uses the documented peak rate because aggregates do not retain per-request timestamps; it is a conservative ceiling for this model, not a weighted bill estimate.
 - Reasoning tokens are displayed separately and are not added again; providers commonly include them in output accounting.
 - Pricing changes over time. `GET /api/pricing` exposes every normalized model rate with its `sourceIds` and basis, plus the complete source list, retrieval timestamps, and models.dev fallback provenance.
 

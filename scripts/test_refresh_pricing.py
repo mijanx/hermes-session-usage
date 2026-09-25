@@ -142,11 +142,23 @@ class CreateSnapshotTests(unittest.TestCase):
 
         expected = {
             "gpt-6-astra": (10, 1, 12.5, 50),
+            "gpt-6-sol": (2, 0.2, 2.5, 10),
+            "gpt-6-luna": (0.1, 0.01, 0.125, 0.5),
+            "gpt-daybreak-blue-latest": (4, 0.4, 5, 20),
+            "gpt-5.6-cyber": (12.5, 1.25, 15.625, 75),
+            "gpt-daybreak-red-latest": (12.5, 1.25, 15.625, 75),
+            "gpt-6-luna-900k": (0.1, 0.01, 0.125, 0.5),
             "gpt-5.6-sol": (4, 0.4, 5, 20),
             "gpt-5.3-codex": (1.75, 0.175, 1.75, 14),
+            "grok-4.7": (2, 0.5, 2, 6),
             "grok-4.6": (2, 0.5, 2, 6),
             "grok-4.5": (2, 0.3, 2, 6),
+            "kimi-k3": (3, 0.3, 3, 15),
             "kimi-k2.6": (0.95, 0.16, 0.95, 4),
+            "deepseek-flash": (0.3, 0.006, 0.3, 1.2),
+            "deepseek-v4.1-flash": (0.3, 0.006, 0.3, 1.2),
+            "deepseek-v4-flash": (0.3, 0.006, 0.3, 1.2),
+            "deepseek-v4-flash-vision-exp": (0.3, 0.006, 0.3, 1.2),
             "MiniMax-M3": (0.3, 0.06, 0.3, 1.2),
             "MiniMax-M2.1-highspeed": (0.6, 0.03, 0.375, 2.4),
         }
@@ -166,10 +178,39 @@ class CreateSnapshotTests(unittest.TestCase):
         self.assertNotIn("kimi-k2.5", prices)
         self.assertNotIn("MiniMax-M2-Stable", prices)
         self.assertEqual(["kimi-pricing", "kimi-model-list"], prices["kimi-k2.6"]["sourceIds"])
+        self.assertIn("5-minute TTL", prices["kimi-k3"]["basis"])
+        self.assertIn("gpt-5.6-sol", prices["gpt-daybreak-blue-latest"]["basis"])
+        self.assertIn("gpt-5.6-cyber", prices["gpt-daybreak-red-latest"]["basis"])
+        self.assertIn("long-context pricing threshold", prices["gpt-6-luna-900k"]["basis"])
+        self.assertIn("gpt-5.6-luna-900k", prices)
+        self.assertEqual(
+            (0.2, 0.02, 0.25, 1.2),
+            tuple(prices["gpt-5.6-luna-900k"][key] for key in (
+                "inputPerMillion", "cacheReadPerMillion", "cacheWritePerMillion", "outputPerMillion"
+            )),
+        )
+        self.assertIn("272k", prices["gpt-5.6-luna-900k"]["basis"])
+        self.assertIn("kimi-k2.7", prices)
+        self.assertEqual(
+            (0.95, 0.19, 0.95, 4),
+            tuple(prices["kimi-k2.7"][key] for key in (
+                "inputPerMillion", "cacheReadPerMillion", "cacheWritePerMillion", "outputPerMillion"
+            )),
+        )
+        self.assertIn("not subscription spend", prices["kimi-k2.7"]["basis"])
+        self.assertIn("50% lower", prices["deepseek-flash"]["basis"])
         self.assertIn("published cache-write rate", prices["gpt-5.6"]["basis"])
         self.assertIn("published cache-write rate", prices["gpt-5.6-sol"]["basis"])
 
         source_ids = {source["id"] for source in document["sources"]}
+        self.assertIn("deepseek-pricing", source_ids)
+        self.assertIn("openai-model-gpt-6-astra", source_ids)
+        self.assertIn("openai-model-gpt-5.6-luna", source_ids)
+        self.assertIn("openai-model-gpt-6-sol", source_ids)
+        self.assertIn("openai-model-gpt-6-luna", source_ids)
+        self.assertIn("kimi-k27-code-pricing", source_ids)
+        self.assertEqual(["openai-model-gpt-6-luna"], prices["gpt-6-luna"]["sourceIds"])
+        self.assertIn("272k", prices["gpt-6-luna"]["basis"])
         self.assertEqual(len(document["sources"]), len(source_ids))
         self.assertEqual(
             len(document["models"]),

@@ -4,71 +4,119 @@
     "id": "merged-snapshot",
     "name": "Official provider pricing with models.dev fallback",
     "url": "data/api-pricing.json",
-    "retrievedAt": "2026-09-17T09:45:45Z",
+    "retrievedAt": "2026-09-25T08:52:41Z",
     "basis": "Compatibility summary; inspect sources and each model's sourceIds for provenance"
   },
   "sources": [
     {
       "name": "OpenAI API pricing",
-      "url": "https://developers.openai.com/api/docs/pricing",
+      "url": "https://developers.openai.com/api/docs/pricing.md",
       "provider": "openai",
-      "basis": "standard short-context text-token rates",
+      "basis": "Standard short-context text-token rates; includes current GPT-6 and GPT-5.6 direct API models",
       "id": "openai-pricing",
-      "retrievedAt": "2026-09-17T09:45:18Z"
+      "retrievedAt": "2026-09-25T08:51:42Z"
     },
     {
       "name": "OpenAI GPT-5.6 model guide",
-      "url": "https://developers.openai.com/api/docs/guides/latest-model",
+      "url": "https://developers.openai.com/api/docs/guides/latest-model.md",
       "provider": "openai",
       "basis": "gpt-5.6 alias routes to gpt-5.6-sol",
       "id": "openai-gpt-5.6-guide",
-      "retrievedAt": "2026-09-17T09:45:18Z"
+      "retrievedAt": "2026-09-25T08:51:42Z"
+    },
+    {
+      "name": "OpenAI GPT-5.6 Luna model pricing",
+      "url": "https://developers.openai.com/api/docs/models/gpt-5.6-luna.md",
+      "provider": "openai",
+      "basis": "Standard text-token pricing and the >272k input-token long-context threshold",
+      "id": "openai-model-gpt-5.6-luna",
+      "retrievedAt": "2026-09-25T08:51:42Z"
+    },
+    {
+      "name": "OpenAI GPT-6 Astra model pricing",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-astra.md",
+      "provider": "openai",
+      "basis": "Standard text-token pricing and the >272k input-token long-context threshold",
+      "id": "openai-model-gpt-6-astra",
+      "retrievedAt": "2026-09-25T08:51:42Z"
+    },
+    {
+      "name": "OpenAI GPT-6 Sol model pricing",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-sol.md",
+      "provider": "openai",
+      "basis": "Standard text-token pricing and the >272k input-token long-context threshold",
+      "id": "openai-model-gpt-6-sol",
+      "retrievedAt": "2026-09-25T08:51:42Z"
+    },
+    {
+      "name": "OpenAI GPT-6 Luna model pricing",
+      "url": "https://developers.openai.com/api/docs/models/gpt-6-luna.md",
+      "provider": "openai",
+      "basis": "Standard text-token pricing and the >272k input-token long-context threshold",
+      "id": "openai-model-gpt-6-luna",
+      "retrievedAt": "2026-09-25T08:51:42Z"
     },
     {
       "name": "xAI API pricing",
-      "url": "https://docs.x.ai/developers/pricing",
+      "url": "https://docs.x.ai/developers/pricing.md",
       "provider": "xai",
       "basis": "standard short-context text-token rates (<200k prompt tokens)",
       "id": "xai-pricing",
-      "retrievedAt": "2026-09-17T09:45:18Z"
+      "retrievedAt": "2026-09-25T08:51:42Z"
     },
     {
       "name": "Kimi API pricing",
-      "url": "https://platform.kimi.ai/docs/pricing/chat",
+      "url": "https://platform.kimi.ai/docs/pricing/chat.md",
       "provider": "moonshotai",
-      "basis": "current cache-hit, cache-miss, and output rates",
+      "basis": "Current cache-hit, cache-miss, output, and cache-write rates; K3 default 5-minute write tier",
       "id": "kimi-pricing",
-      "retrievedAt": "2026-09-17T09:45:18Z"
+      "retrievedAt": "2026-09-25T08:51:42Z"
     },
     {
       "name": "Kimi model list",
-      "url": "https://platform.kimi.ai/docs/models",
+      "url": "https://platform.kimi.ai/docs/models.md",
       "provider": "moonshotai",
       "basis": "active and deprecated model status",
       "id": "kimi-model-list",
-      "retrievedAt": "2026-09-17T09:45:18Z"
+      "retrievedAt": "2026-09-25T08:51:42Z"
+    },
+    {
+      "name": "Kimi K2.7 Code model pricing",
+      "url": "https://platform.kimi.ai/docs/pricing/chat-k27-code.md",
+      "provider": "moonshotai",
+      "basis": "K2.7 Code and HighSpeed cache-hit, cache-miss, and output pricing",
+      "id": "kimi-k27-code-pricing",
+      "retrievedAt": "2026-09-25T08:51:42Z"
     },
     {
       "name": "MiniMax pay-as-you-go pricing",
-      "url": "https://platform.minimax.io/docs/guides/pricing-paygo",
+      "url": "https://platform.minimax.io/docs/guides/pricing-paygo.md",
       "provider": "minimax",
       "basis": "standard rates; MiniMax-M3 <=512k input tokens",
       "id": "minimax-paygo-pricing",
-      "retrievedAt": "2026-09-17T09:45:18Z"
+      "retrievedAt": "2026-09-25T08:51:42Z"
     },
     {
       "name": "MiniMax explicit prompt-caching pricing",
-      "url": "https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache",
+      "url": "https://platform.minimax.io/docs/api-reference/anthropic-api-compatible-cache.md",
       "provider": "minimax",
       "basis": "cache-read and cache-write rates for M2-family models",
       "id": "minimax-cache-pricing",
-      "retrievedAt": "2026-09-17T09:45:18Z"
+      "retrievedAt": "2026-09-25T08:51:42Z"
+    },
+    {
+      "name": "DeepSeek API pricing",
+      "url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "provider": "deepseek",
+      "basis": "Peak token rates for DeepSeek-V4.1-Flash; off-peak rates are 50% lower",
+      "id": "deepseek-pricing",
+      "retrievedAt": "2026-09-25T08:51:42Z"
     },
     {
       "id": "models-dev",
       "name": "models.dev fallback",
       "url": "https://models.dev/api.json",
-      "retrievedAt": "2026-09-17T09:45:45Z",
+      "retrievedAt": "2026-09-25T08:52:41Z",
       "basis": "used only for models without an official-provider override"
     }
   ],
@@ -194,6 +242,18 @@
       "basis": "Direct API rates from the models.dev fallback catalog"
     },
     {
+      "model": "claude-opus-5-5",
+      "provider": "anthropic",
+      "inputPerMillion": 4,
+      "cacheReadPerMillion": 0.2,
+      "cacheWritePerMillion": 5,
+      "outputPerMillion": 20,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
       "model": "claude-sonnet-4-5",
       "provider": "anthropic",
       "inputPerMillion": 3,
@@ -280,26 +340,26 @@
     {
       "model": "deepseek-flash",
       "provider": "deepseek",
-      "inputPerMillion": 0.15,
-      "cacheReadPerMillion": 0.003,
-      "cacheWritePerMillion": 0.15,
-      "outputPerMillion": 0.6,
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.006,
+      "cacheWritePerMillion": 0.3,
+      "outputPerMillion": 1.2,
       "sourceIds": [
-        "models-dev"
+        "deepseek-pricing"
       ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
+      "basis": "Canonical DeepSeek-V4.1-Flash API name; peak rates, with off-peak rates 50% lower; no separate cache-write rate is published"
     },
     {
       "model": "deepseek-v4-flash",
       "provider": "deepseek",
-      "inputPerMillion": 0.15,
-      "cacheReadPerMillion": 0.003,
-      "cacheWritePerMillion": 0.15,
-      "outputPerMillion": 0.6,
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.006,
+      "cacheWritePerMillion": 0.3,
+      "outputPerMillion": 1.2,
       "sourceIds": [
-        "models-dev"
+        "deepseek-pricing"
       ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
+      "basis": "Retired legacy name that DeepSeek says is served by DeepSeek-V4.1-Flash at its current peak rates; off-peak rates are 50% lower"
     },
     {
       "model": "deepseek-v4-flash-0731",
@@ -316,14 +376,14 @@
     {
       "model": "deepseek-v4-flash-vision-exp",
       "provider": "deepseek",
-      "inputPerMillion": 0.15,
-      "cacheReadPerMillion": 0.003,
-      "cacheWritePerMillion": 0.15,
-      "outputPerMillion": 0.6,
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.006,
+      "cacheWritePerMillion": 0.3,
+      "outputPerMillion": 1.2,
       "sourceIds": [
-        "models-dev"
+        "deepseek-pricing"
       ],
-      "basis": "Direct API rates from the models.dev fallback catalog"
+      "basis": "Retired legacy name that DeepSeek says is served by DeepSeek-V4.1-Flash at its current peak rates; off-peak rates are 50% lower"
     },
     {
       "model": "deepseek-v4-pro",
@@ -336,6 +396,18 @@
         "models-dev"
       ],
       "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "deepseek-v4.1-flash",
+      "provider": "deepseek",
+      "inputPerMillion": 0.3,
+      "cacheReadPerMillion": 0.006,
+      "cacheWritePerMillion": 0.3,
+      "outputPerMillion": 1.2,
+      "sourceIds": [
+        "deepseek-pricing"
+      ],
+      "basis": "DeepSeek-V4.1-Flash version ID; peak rates, with off-peak rates 50% lower; no separate cache-write rate is published"
     },
     {
       "model": "devstral-2512",
@@ -904,10 +976,22 @@
     {
       "model": "glm-5.3-flash",
       "provider": "zhipuai",
-      "inputPerMillion": 0.075,
-      "cacheReadPerMillion": 0.015,
+      "inputPerMillion": 0.15,
+      "cacheReadPerMillion": 0.03,
       "cacheWritePerMillion": 0,
-      "outputPerMillion": 0.25,
+      "outputPerMillion": 0.5,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "glm-5.3-flashx",
+      "provider": "zhipuai",
+      "inputPerMillion": 0.37,
+      "cacheReadPerMillion": 0.075,
+      "cacheWritePerMillion": 0,
+      "outputPerMillion": 1.25,
       "sourceIds": [
         "models-dev"
       ],
@@ -1275,6 +1359,18 @@
       "basis": "Standard short-context token rates with the published cache-write rate"
     },
     {
+      "model": "gpt-5.6-cyber",
+      "provider": "openai",
+      "inputPerMillion": 12.5,
+      "cacheReadPerMillion": 1.25,
+      "cacheWritePerMillion": 15.625,
+      "outputPerMillion": 75,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "Standard short-context Cyber model rates; long-context pricing is not published"
+    },
+    {
       "model": "gpt-5.6-luna",
       "provider": "openai",
       "inputPerMillion": 0.2,
@@ -1282,9 +1378,21 @@
       "cacheWritePerMillion": 0.25,
       "outputPerMillion": 1.2,
       "sourceIds": [
-        "openai-pricing"
+        "openai-model-gpt-5.6-luna"
       ],
-      "basis": "Standard short-context token rates; unspecified cache writes use ordinary input rates"
+      "basis": "Standard rates with published cache-write pricing; prompts above 272k input tokens use 2x input/cache and 1.5x output rates"
+    },
+    {
+      "model": "gpt-5.6-luna-900k",
+      "provider": "openai",
+      "inputPerMillion": 0.2,
+      "cacheReadPerMillion": 0.02,
+      "cacheWritePerMillion": 0.25,
+      "outputPerMillion": 1.2,
+      "sourceIds": [
+        "openai-model-gpt-5.6-luna"
+      ],
+      "basis": "Hermes 900k-context alias for gpt-5.6-luna; standard rates used because aggregates do not show whether an individual request crossed the >272k long-context threshold"
     },
     {
       "model": "gpt-5.6-sol",
@@ -1318,9 +1426,70 @@
       "cacheWritePerMillion": 12.5,
       "outputPerMillion": 50,
       "sourceIds": [
+        "openai-pricing",
+        "openai-model-gpt-6-astra"
+      ],
+      "basis": "Standard text-token rates with the published cache-write rate; prompts above 272k input tokens use 2x input/cache and 1.5x output rates"
+    },
+    {
+      "model": "gpt-6-luna",
+      "provider": "openai",
+      "inputPerMillion": 0.1,
+      "cacheReadPerMillion": 0.01,
+      "cacheWritePerMillion": 0.125,
+      "outputPerMillion": 0.5,
+      "sourceIds": [
+        "openai-model-gpt-6-luna"
+      ],
+      "basis": "Standard rates with published cache-write pricing; prompts above 272k input tokens use 2x input/cache and 1.5x output rates"
+    },
+    {
+      "model": "gpt-6-luna-900k",
+      "provider": "openai",
+      "inputPerMillion": 0.1,
+      "cacheReadPerMillion": 0.01,
+      "cacheWritePerMillion": 0.125,
+      "outputPerMillion": 0.5,
+      "sourceIds": [
+        "openai-model-gpt-6-luna"
+      ],
+      "basis": "Hermes 900k-context alias for gpt-6-luna; short-context API rates used because session aggregates do not show whether an individual request crossed the long-context pricing threshold"
+    },
+    {
+      "model": "gpt-6-sol",
+      "provider": "openai",
+      "inputPerMillion": 2,
+      "cacheReadPerMillion": 0.2,
+      "cacheWritePerMillion": 2.5,
+      "outputPerMillion": 10,
+      "sourceIds": [
+        "openai-model-gpt-6-sol"
+      ],
+      "basis": "Standard rates with published cache-write pricing; prompts above 272k input tokens use 2x input/cache and 1.5x output rates"
+    },
+    {
+      "model": "gpt-daybreak-blue-latest",
+      "provider": "openai",
+      "inputPerMillion": 4,
+      "cacheReadPerMillion": 0.4,
+      "cacheWritePerMillion": 5,
+      "outputPerMillion": 20,
+      "sourceIds": [
         "openai-pricing"
       ],
-      "basis": "Standard short-context token rates with the published cache-write rate"
+      "basis": "OpenAI documents this alias as routing to gpt-5.6-sol; uses its Standard short-context rates"
+    },
+    {
+      "model": "gpt-daybreak-red-latest",
+      "provider": "openai",
+      "inputPerMillion": 12.5,
+      "cacheReadPerMillion": 1.25,
+      "cacheWritePerMillion": 15.625,
+      "outputPerMillion": 75,
+      "sourceIds": [
+        "openai-pricing"
+      ],
+      "basis": "OpenAI documents this alias as routing to gpt-5.6-cyber; uses its Standard short-context rates"
     },
     {
       "model": "gpt-image-2",
@@ -1419,6 +1588,18 @@
       "basis": "Short-context rates below 200K input tokens; unspecified cache writes use ordinary input rates"
     },
     {
+      "model": "grok-4.7",
+      "provider": "xai",
+      "inputPerMillion": 2,
+      "cacheReadPerMillion": 0.5,
+      "cacheWritePerMillion": 2,
+      "outputPerMillion": 6,
+      "sourceIds": [
+        "xai-pricing"
+      ],
+      "basis": "Standard short-context rates below 200K input tokens; long-context tier excluded and unspecified cache writes use ordinary input rates"
+    },
+    {
       "model": "grok-build-0.1",
       "provider": "xai",
       "inputPerMillion": 1,
@@ -1444,6 +1625,19 @@
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
     {
+      "model": "kimi-k2.7",
+      "provider": "moonshotai",
+      "inputPerMillion": 0.95,
+      "cacheReadPerMillion": 0.19,
+      "cacheWritePerMillion": 0.95,
+      "outputPerMillion": 4,
+      "sourceIds": [
+        "kimi-k27-code-pricing",
+        "kimi-model-list"
+      ],
+      "basis": "Kimi Coding short alias mapped to official kimi-k2.7-code rates; counterfactual API-equivalent pricing, not subscription spend"
+    },
+    {
       "model": "kimi-k2.7-code",
       "provider": "moonshotai",
       "inputPerMillion": 0.95,
@@ -1452,7 +1646,8 @@
       "outputPerMillion": 4,
       "sourceIds": [
         "kimi-pricing",
-        "kimi-model-list"
+        "kimi-model-list",
+        "kimi-k27-code-pricing"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
@@ -1465,7 +1660,8 @@
       "outputPerMillion": 8,
       "sourceIds": [
         "kimi-pricing",
-        "kimi-model-list"
+        "kimi-model-list",
+        "kimi-k27-code-pricing"
       ],
       "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
     },
@@ -1480,7 +1676,7 @@
         "kimi-pricing",
         "kimi-model-list"
       ],
-      "basis": "Cache miss=input, cache hit=cache read, and unspecified cache writes use ordinary input rates"
+      "basis": "Cache miss=input, cache hit=cache read; cache write uses the published default 5-minute TTL price ($3/M), not the optional 1-hour TTL tier ($6/M)"
     },
     {
       "model": "magistral-medium-latest",
@@ -2607,6 +2803,18 @@
     },
     {
       "model": "zai-glm-5-2",
+      "provider": "mistral",
+      "inputPerMillion": 1.4,
+      "cacheReadPerMillion": 0.14,
+      "cacheWritePerMillion": 1.4,
+      "outputPerMillion": 4.4,
+      "sourceIds": [
+        "models-dev"
+      ],
+      "basis": "Direct API rates from the models.dev fallback catalog"
+    },
+    {
+      "model": "zai-glm-5-3",
       "provider": "mistral",
       "inputPerMillion": 1.4,
       "cacheReadPerMillion": 0.14,
